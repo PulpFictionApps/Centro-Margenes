@@ -2,26 +2,103 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 48 38% 86%;
+    --foreground: 0 40% 25%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 18% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 18% 18%;
+
+    --primary: 0 40% 25%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 155 25% 93%;
+    --secondary-foreground: 160 30% 28%;
+
+    --muted: 40 15% 93%;
+    --muted-foreground: 210 8% 50%;
+
+    --accent: 155 20% 94%;
+    --accent-foreground: 160 30% 28%;
+
+    --destructive: 0 65% 52%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 12% 90%;
+    --input: 210 12% 90%;
+    --ring: 0 40% 25%;
+
+    --radius: 0;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply text-foreground;
+    background-image: url('/images/Pattern%20Fondo.png');
+    background-repeat: repeat;
+    background-size: auto;
+    font-family: var(--font-leggibilmente), sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+/* Smooth page transitions */
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .animate-in {
+    animation: fadeIn 0.4s ease-out;
   }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hover fill buttons */
+.btn-fill {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+.btn-fill::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 100%;
+  transition: width 0.3s ease;
+}
+.btn-fill:hover::after {
+  width: 100%;
+}
+.btn-fill-white::after {
+  background: rgba(255, 255, 255, 0.2);
+}
+.btn-fill-tan::after {
+  background: #5b2525;
+}
+.btn-fill-tan:hover {
+  color: #fff;
 }
