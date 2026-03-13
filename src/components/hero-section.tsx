@@ -4,7 +4,7 @@ export function HeroSection() {
   return (
     <section className="relative -mt-[5.9rem] w-full overflow-hidden" style={{ height: "87vh" }}>
       <Image
-        src="/images/header.png"
+        src="/images/Header.png"
         alt="Centro Márgenes"
         fill
         className="object-cover object-top"
