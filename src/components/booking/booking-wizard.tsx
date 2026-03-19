@@ -8,6 +8,7 @@ import { StepTreatment } from "./step-treatment";
 import { StepTherapist } from "./step-therapist";
 import { StepDateTime } from "./step-date-time";
 import { StepPatientInfo } from "./step-patient-info";
+import { StepConditions } from "./step-conditions";
 import { BookingConfirmation } from "./booking-confirmation";
 import { createClient } from "@/lib/supabase/client";
 import type { BookingFormData, Therapist, Treatment, Branch } from "@/lib/types";
@@ -18,7 +19,8 @@ const steps = [
   { id: 2, label: "Tratamiento" },
   { id: 3, label: "Terapeuta" },
   { id: 4, label: "Fecha y hora" },
-  { id: 5, label: "Tus datos" },
+  { id: 5, label: "Condiciones" },
+  { id: 6, label: "Tus datos" },
 ];
 
 interface BookingWizardProps {
@@ -31,6 +33,7 @@ export function BookingWizard({ treatments, therapists, branches }: BookingWizar
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [conditionsAccepted, setConditionsAccepted] = useState(false);
   const [formData, setFormData] = useState<BookingFormData>({
     branch: null,
     treatment: null,
@@ -51,6 +54,8 @@ export function BookingWizard({ treatments, therapists, branches }: BookingWizar
       case 4:
         return formData.date !== null && formData.time !== null;
       case 5:
+        return conditionsAccepted;
+      case 6:
         return (
           formData.patient.name.trim() !== "" &&
           formData.patient.email.trim() !== "" &&
@@ -177,6 +182,12 @@ export function BookingWizard({ treatments, therapists, branches }: BookingWizar
             />
           )}
           {currentStep === 5 && (
+            <StepConditions
+              accepted={conditionsAccepted}
+              onAcceptChange={setConditionsAccepted}
+            />
+          )}
+          {currentStep === 6 && (
             <StepPatientInfo
               patient={formData.patient}
               onChange={(patient: BookingFormData["patient"]) => setFormData({ ...formData, patient })}
@@ -197,7 +208,7 @@ export function BookingWizard({ treatments, therapists, branches }: BookingWizar
           Anterior
         </Button>
 
-        {currentStep < 5 ? (
+        {currentStep < 6 ? (
           <Button
             onClick={() => setCurrentStep(currentStep + 1)}
             disabled={!canProceed()}

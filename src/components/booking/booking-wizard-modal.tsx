@@ -17,6 +17,7 @@ import { WizardStepTreatment } from "./wizard-step-treatment";
 import { WizardStepTherapist } from "./wizard-step-therapist";
 import { WizardStepDateTime } from "./wizard-step-date-time";
 import { WizardStepPatient } from "./wizard-step-patient";
+import { WizardStepConditions } from "./wizard-step-conditions";
 import { WizardConfirmation } from "./wizard-confirmation";
 import { ChevronLeft, ChevronRight, Check, Loader2 } from "lucide-react";
 
@@ -55,7 +56,8 @@ const STEPS = [
   { id: 2, label: "Tratamiento" },
   { id: 3, label: "Terapeuta" },
   { id: 4, label: "Fecha y hora" },
-  { id: 5, label: "Tus datos" },
+  { id: 5, label: "Condiciones" },
+  { id: 6, label: "Tus datos" },
 ] as const;
 
 // Validation fields per step to enable partial validation
@@ -64,7 +66,8 @@ const STEP_FIELDS: Record<number, (keyof BookingFormValues)[]> = {
   2: ["treatmentId"],
   3: ["therapistId"],
   4: ["date", "time"],
-  5: ["patient"],
+  5: [],
+  6: ["patient"],
 };
 
 interface BookingWizardModalProps {
@@ -88,6 +91,7 @@ export function BookingWizardModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
+  const [conditionsAccepted, setConditionsAccepted] = useState(false);
 
   // Availability & slot state for step 4
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
@@ -177,6 +181,7 @@ export function BookingWizardModal({
         setStep(1);
         setIsComplete(false);
         setBookingError(null);
+        setConditionsAccepted(false);
         setAvailableSlots([]);
       }, 300);
       return () => clearTimeout(timeout);
@@ -223,7 +228,9 @@ export function BookingWizardModal({
     const valid = await trigger(fieldsToValidate);
     if (!valid) return;
 
-    if (step < 5) {
+    if (step === 5 && !conditionsAccepted) return;
+
+    if (step < 6) {
       setStep(step + 1);
     } else {
       await handleSubmit();
@@ -282,7 +289,9 @@ export function BookingWizardModal({
       case 4:
         return !!selectedDate && !!selectedTime;
       case 5:
-        return true; // RHF + Zod handles step-5 validation on submit
+        return conditionsAccepted;
+      case 6:
+        return true; // RHF + Zod handles step-6 validation on submit
       default:
         return false;
     }
@@ -313,7 +322,7 @@ export function BookingWizardModal({
         <DialogHeader className="pb-2">
           <DialogTitle className="font-playfair text-2xl font-normal text-brand">Reservar una cita</DialogTitle>
           <DialogDescription className="text-[11px] uppercase tracking-[0.2em] text-neutral-500">
-            Paso {step} de 5 — {STEPS[step - 1].label}
+            Paso {step} de 6 — {STEPS[step - 1].label}
           </DialogDescription>
         </DialogHeader>
 
@@ -377,7 +386,13 @@ export function BookingWizardModal({
                 loadingSlots={loadingSlots}
               />
             )}
-            {step === 5 && <WizardStepPatient />}
+            {step === 5 && (
+              <WizardStepConditions
+                accepted={conditionsAccepted}
+                onAcceptChange={setConditionsAccepted}
+              />
+            )}
+            {step === 6 && <WizardStepPatient />}
           </div>
         </FormProvider>
 
@@ -393,7 +408,7 @@ export function BookingWizardModal({
             Anterior
           </button>
 
-          {step < 5 ? (
+          {step < 6 ? (
             <button
               type="button"
               onClick={handleNext}

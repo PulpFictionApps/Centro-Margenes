@@ -73,108 +73,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* ──── Bottom: Session Options ──── */}
-        <div className="mx-auto max-w-[1200px] px-6 pb-24 pt-20 lg:pb-32">
-          <div className="flex flex-col lg:flex-row lg:items-stretch lg:gap-0">
-            {/* White card */}
-            <div className="relative z-10 bg-white px-10 py-14 lg:w-[55%] lg:px-16 lg:py-20">
-              <h2 className="font-playfair text-5xl font-normal leading-[1.1] text-brand lg:text-6xl">
-                OPCIONES
-                <br />
-                DE SESIÓN
-              </h2>
-
-              {/* 2×2 Grid */}
-              <div className="mt-12 grid grid-cols-1 gap-x-12 gap-y-0 sm:grid-cols-2">
-                {/* Item 1 */}
-                <div className="border-t border-neutral-300 py-6">
-                  <h4 className="text-[11px] font-normal uppercase tracking-[0.2em] text-neutral-700">
-                    Sesiones Raíz
-                  </h4>
-                  <p className="mt-3 font-playfair text-base italic font-normal leading-relaxed text-neutral-500">
-                    Espacio continuo 1:1 para procesar y ser acompañado
-                  </p>
-                </div>
-                {/* Item 2 */}
-                <div className="border-t border-neutral-300 py-6">
-                  <h4 className="text-[11px] font-normal uppercase tracking-[0.2em] text-neutral-700">
-                    Serie de Recuperación
-                  </h4>
-                  <p className="mt-3 font-playfair text-base italic font-normal leading-relaxed text-neutral-500">
-                    Marco de 8 sesiones para mujeres y madres después del cuidado o la transición
-                  </p>
-                </div>
-                {/* Item 3 */}
-                <div className="border-t border-neutral-300 py-6">
-                  <h4 className="text-[11px] font-normal uppercase tracking-[0.2em] text-neutral-700">
-                    Estaciones de Ti
-                  </h4>
-                  <p className="mt-3 font-playfair text-base italic font-normal leading-relaxed text-neutral-500">
-                    Marco estacional de 4 sesiones para alineación y reflexión
-                  </p>
-                </div>
-                {/* Item 4 */}
-                <div className="border-t border-neutral-300 py-6">
-                  <h4 className="text-[11px] font-normal uppercase tracking-[0.2em] text-neutral-700">
-                    Lado a Lado (Parejas)
-                  </h4>
-                  <p className="mt-3 font-playfair text-base italic font-normal leading-relaxed text-neutral-500">
-                    Apoyo relacional para conexión y claridad
-                  </p>
-                </div>
-              </div>
-
-              {/* Button */}
-              <div className="mt-10 flex justify-center">
-                <Link
-                  href="/terapeutas"
-                  className="btn-fill btn-fill-tan inline-block border-y border-[#5b2525] px-10 py-4 text-xs font-normal uppercase tracking-[0.25em] text-[#5b2525] transition-all duration-300"
-                >
-                  Ver todos los servicios
-                </Link>
-              </div>
-            </div>
-
-            {/* Right image */}
-            <div className="relative aspect-[3/4] w-full lg:aspect-auto lg:w-[45%]">
-              <Image
-                src="/images/seccion3-2.jpg"
-                alt="Espacio terapéutico"
-                fill
-                className="object-cover"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* ──── CTA Divider ──── */}
-        <div className="relative flex h-[500px] items-center justify-center overflow-hidden lg:h-[573px]">
-          <Image
-            src="/images/Agenda-tu-primera-sesión.png"
-            alt="Centro Márgenes espacio"
-            fill
-            className="object-cover"
-          />
-          <div className="relative z-10 flex flex-col items-center text-center">
-            <h3 className="text-[11px] font-normal uppercase tracking-[0.25em] text-white/80">
-                Puedes agendar una primera sesión para conocernos,<br></br> hablar sobre tu situación y ver cómo podemos trabajar juntos.
-            </h3>
-            <h2 className="mt-4 font-playfair text-4xl font-normal leading-[1.1] text-white lg:text-6xl">
-              AGENDA TU PRIMERA SESIÓN
-            </h2>
-            <div className="mt-10">
-              <Link
-                href="/reservar"
-                className="btn-fill btn-fill-white inline-block border-y border-white px-10 py-4 text-xs font-normal uppercase tracking-[0.25em] text-white transition-all duration-300"
-              >
-                AGENDAR
-              </Link>
-            </div>
-          </div>
-          {/* Dark overlay */}
-          <div className="absolute inset-0 bg-black/30" />
-        </div>
-
         {/* ──── Navigation Links ──── */}
         <div className="mx-auto max-w-[1200px] px-6 pb-24 pt-16 lg:pb-32">
           <div className="flex flex-col lg:flex-row lg:items-center lg:gap-0">
@@ -227,10 +125,120 @@ export default function HomePage() {
             {/* Right: image */}
             <div className="relative mt-10 aspect-[3/4] w-full max-w-[350px] flex-shrink-0 overflow-hidden lg:ml-16 lg:mt-0">
               <Image
+                src="/images/seccion3-2.jpg"
+                alt="Espacio terapéutico"
+                fill
+                className="object-cover"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ──── CTA Divider ──── */}
+        <div className="relative flex h-[500px] items-center justify-center overflow-hidden lg:h-[573px]">
+          <Image
+            src="/images/Agenda-tu-primera-sesión.png"
+            alt="Centro Márgenes espacio"
+            fill
+            className="object-cover"
+          />
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <h3 className="text-[11px] font-normal uppercase tracking-[0.25em] text-white/80">
+                Puedes agendar una primera sesión para conocernos,<br></br> hablar sobre tu situación y ver cómo podemos trabajar juntos.
+            </h3>
+            <h2 className="mt-4 font-playfair text-4xl font-normal leading-[1.1] text-white lg:text-6xl">
+              AGENDA TU PRIMERA SESIÓN
+            </h2>
+            <div className="mt-10">
+              <Link
+                href="/reservar"
+                className="btn-fill btn-fill-white inline-block border-y border-white px-10 py-4 text-xs font-normal uppercase tracking-[0.25em] text-white transition-all duration-300"
+              >
+                AGENDAR
+              </Link>
+            </div>
+          </div>
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-black/30" />
+        </div>
+
+        {/* ──── Bottom: Session Options ──── */}
+        <div className="mx-auto max-w-[1200px] px-6 pb-24 pt-20 lg:pb-32">
+          <div className="flex flex-col lg:flex-row lg:gap-12">
+            {/* Left: stacked list */}
+            <div className="flex-1">
+              {/* Item 1 */}
+              <div className="border-b border-neutral-400/50 pb-10 pt-2">
+                <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
+                  Sesiones Raíz
+                </h4>
+                <p className="mt-1 font-playfair text-sm italic text-brand/70">
+                  Terapia individual
+                </p>
+                <p className="mt-4 max-w-[700px] text-sm leading-[1.8] text-neutral-600">
+                  Espacio continuo y semanal de escucha psicoanalítica, donde cada persona puede hablar libremente sobre aquello que le genera malestar. Un proceso singular que se construye respetando el ritmo y la historia de cada sujeto.
+                </p>
+                <Link href="/reservar" className="mt-4 inline-block font-playfair text-sm italic text-brand underline decoration-brand/40 underline-offset-4 transition-colors hover:text-neutral-900">
+                  Agendar sesión ➝
+                </Link>
+              </div>
+
+              {/* Item 2 */}
+              <div className="border-b border-neutral-400/50 pb-10 pt-10">
+                <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
+                  Serie de Recuperación
+                </h4>
+                <p className="mt-1 font-playfair text-sm italic text-brand/70">
+                  Programa de 8 sesiones
+                </p>
+                <p className="mt-4 max-w-[700px] text-sm leading-[1.8] text-neutral-600">
+                  Marco de 8 sesiones pensado para mujeres y madres en procesos de transición o después del cuidado. Un espacio para elaborar las experiencias que atraviesan la maternidad, el duelo y los cambios vitales.
+                </p>
+                <p className="mt-4 font-playfair text-sm italic text-brand/70">
+                  Próximamente
+                </p>
+              </div>
+
+              {/* Item 3 */}
+              <div className="border-b border-neutral-400/50 pb-10 pt-10">
+                <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
+                  Estaciones de Ti
+                </h4>
+                <p className="mt-1 font-playfair text-sm italic text-brand/70">
+                  Ciclo de 4 sesiones
+                </p>
+                <p className="mt-4 max-w-[700px] text-sm leading-[1.8] text-neutral-600">
+                  Marco estacional de 4 sesiones para alineación y reflexión. Un espacio breve e intensivo para hacer una pausa, revisarse y reconectar con lo que importa en cada etapa.
+                </p>
+                <p className="mt-4 font-playfair text-sm italic text-brand/70">
+                  Próximamente
+                </p>
+              </div>
+
+              {/* Item 4 */}
+              <div className="border-b border-neutral-400/50 pb-10 pt-10">
+                <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
+                  Lado a Lado (Parejas)
+                </h4>
+                <p className="mt-1 font-playfair text-sm italic text-brand/70">
+                  Terapia de pareja
+                </p>
+                <p className="mt-4 max-w-[700px] text-sm leading-[1.8] text-neutral-600">
+                  Apoyo relacional para parejas que buscan conexión y claridad. Un proceso donde ambos pueden ser escuchados y trabajar juntos las dinámicas que generan malestar en el vínculo.
+                </p>
+                <p className="mt-4 font-playfair text-sm italic text-brand/70">
+                  Próximamente
+                </p>
+              </div>
+            </div>
+
+            {/* Right: tall image */}
+            <div className="relative mt-10 aspect-[3/4] w-full max-w-[400px] flex-shrink-0 lg:mt-0">
+              <Image
                 src="/images/Preguntas-frecuentes-marco.png"
                 alt="Centro Márgenes"
                 fill
-                className="object-cover"
+                className="object-contain"
               />
             </div>
           </div>
