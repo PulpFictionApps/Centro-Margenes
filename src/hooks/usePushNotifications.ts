@@ -10,7 +10,7 @@ function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
   for (let i = 0; i < rawData.length; i++) {
     output[i] = rawData.charCodeAt(i);
   }
-  return output.buffer as ArrayBuffer;
+  return output.buffer;
 }
 
 export type PushPermission = "default" | "granted" | "denied" | "unsupported";
