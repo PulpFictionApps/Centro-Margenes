@@ -106,7 +106,7 @@ export function AdminNav({ adminName }: AdminNavProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-1 flex-col items-center justify-center gap-1 px-1 py-6 transition-colors",
+                "flex flex-1 min-h-[5rem] flex-col items-center justify-center gap-1 px-1 py-6 transition-colors",
                 isActive(item) ? "text-brand" : "text-neutral-400 hover:text-brand"
               )}
             >
@@ -116,14 +116,14 @@ export function AdminNav({ adminName }: AdminNavProps) {
           ))}
           <Link
             href="/dashboard"
-            className="flex flex-1 flex-col items-center justify-center gap-1 px-1 py-6 text-neutral-400 transition-colors hover:text-brand"
+            className="flex flex-1 min-h-[5rem] flex-col items-center justify-center gap-1 px-1 py-6 text-neutral-400 transition-colors hover:text-brand"
           >
             <ArrowLeft className="h-8 w-8 flex-shrink-0" />
             <span className="text-[8px] uppercase tracking-[0.03em] leading-none">Volver</span>
           </Link>
           <button
             onClick={handleLogout}
-            className="flex flex-1 flex-col items-center justify-center gap-1 px-1 py-6 text-neutral-400 transition-colors hover:text-brand"
+            className="flex flex-1 min-h-[5rem] flex-col items-center justify-center gap-1 px-1 py-6 text-neutral-400 transition-colors hover:text-brand"
           >
             <LogOut className="h-8 w-8 flex-shrink-0" />
             <span className="text-[8px] uppercase tracking-[0.03em] leading-none">Salir</span>
