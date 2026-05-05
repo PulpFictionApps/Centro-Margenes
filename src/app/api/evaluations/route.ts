@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = 'force-dynamic';
 
@@ -89,6 +90,15 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = createServerSupabaseClient();
+    // Use service role to bypass RLS — this is a public endpoint for patients
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseAdmin = serviceRoleKey
+      ? createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          serviceRoleKey,
+          { auth: { autoRefreshToken: false, persistSession: false } }
+        )
+      : supabase;
     const body = await request.json();
     const { appointment_id, rating, comment, is_anonymous } = body;
 
@@ -128,7 +138,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if already evaluated
-    const { data: existing, error: existingError } = await supabase
+    const { data: existing, error: existingError } = await supabaseAdmin
       .from("evaluations")
       .select("id")
       .eq("appointment_id", appointment_id)
@@ -149,7 +159,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: evaluation, error } = await supabase
+    const { data: evaluation, error } = await supabaseAdmin
       .from("evaluations")
       .insert({
         appointment_id,
