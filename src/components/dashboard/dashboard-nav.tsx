@@ -16,15 +16,15 @@ import {
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/dashboard", label: "Inicio", icon: LayoutDashboard, exact: true },
-  { href: "/dashboard/appointments", label: "Citas", icon: Calendar, exact: false },
-  { href: "/dashboard/calendar", label: "Calendario", icon: Calendar, exact: false },
-  { href: "/dashboard/patients", label: "Pacientes", icon: User, exact: false },
-  { href: "/dashboard/clinical-records", label: "Fichas", icon: FileText, exact: false },
-  { href: "/dashboard/availability", label: "Disponibilidad", icon: Clock, exact: false },
-  { href: "/dashboard/evaluations", label: "Evaluaciones", icon: Star, exact: false },
-  { href: "/dashboard/services", label: "Servicios", icon: Briefcase, exact: false },
-  { href: "/dashboard/profile", label: "Mi perfil", icon: User, exact: false },
+  { href: "/dashboard", label: "Inicio", shortLabel: "Inicio", icon: LayoutDashboard, exact: true },
+  { href: "/dashboard/appointments", label: "Citas", shortLabel: "Citas", icon: Calendar, exact: false },
+  { href: "/dashboard/calendar", label: "Calendario", shortLabel: "Agenda", icon: Calendar, exact: false },
+  { href: "/dashboard/patients", label: "Pacientes", shortLabel: "Pacientes", icon: User, exact: false },
+  { href: "/dashboard/clinical-records", label: "Fichas", shortLabel: "Fichas", icon: FileText, exact: false },
+  { href: "/dashboard/availability", label: "Disponibilidad", shortLabel: "Horarios", icon: Clock, exact: false },
+  { href: "/dashboard/evaluations", label: "Evaluaciones", shortLabel: "Evaluar", icon: Star, exact: false },
+  { href: "/dashboard/services", label: "Servicios", shortLabel: "Servicios", icon: Briefcase, exact: false },
+  { href: "/dashboard/profile", label: "Mi perfil", shortLabel: "Perfil", icon: User, exact: false },
 ];
 
 interface DashboardNavProps {
@@ -102,20 +102,20 @@ export function DashboardNav({ therapistName }: DashboardNavProps) {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex min-w-[4rem] flex-1 flex-col items-center justify-center gap-1 px-1 py-2.5 transition-colors",
+              "flex min-w-[3.5rem] flex-1 flex-col items-center justify-center gap-1 px-1 py-2.5 transition-colors",
               isActive(item) ? "text-brand" : "text-neutral-400 hover:text-brand"
             )}
           >
             <item.icon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
-            <span className="text-[9px] uppercase tracking-[0.05em] leading-none">{item.label}</span>
+            <span className="text-[8px] uppercase tracking-[0.03em] leading-none whitespace-nowrap">{item.shortLabel}</span>
           </Link>
         ))}
         <button
           onClick={handleLogout}
-          className="flex min-w-[4rem] flex-col items-center justify-center gap-1 px-1 py-2.5 text-neutral-400 transition-colors hover:text-brand"
+          className="flex min-w-[3.5rem] flex-col items-center justify-center gap-1 px-1 py-2.5 text-neutral-400 transition-colors hover:text-brand"
         >
           <LogOut className="h-5 w-5 flex-shrink-0" />
-          <span className="text-[9px] uppercase tracking-[0.05em] leading-none">Salir</span>
+          <span className="text-[8px] uppercase tracking-[0.03em] leading-none">Salir</span>
         </button>
       </nav>
     </>
