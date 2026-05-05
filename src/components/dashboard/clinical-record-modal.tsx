@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import { Patient, ClinicalRecordWithRelations, ClinicalAttachment } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -351,9 +352,11 @@ export function ClinicalRecordModal({
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded bg-brand/10 flex items-center justify-center">
                                 {attachment.file_type.startsWith("image/") ? (
-                                  <img
+                                  <Image
                                     src={attachment.file_url}
                                     alt=""
+                                    width={32}
+                                    height={32}
                                     className="w-8 h-8 object-cover rounded"
                                   />
                                 ) : (
