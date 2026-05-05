@@ -113,7 +113,7 @@ export function AdminNav({ adminName }: AdminNavProps) {
               <item.icon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
               <span className="text-[8px] uppercase tracking-[0.03em] leading-none">{item.shortLabel}</span>
             </Link>
-          )}
+          ))}
           <Link
             href="/dashboard"
             className="flex flex-1 flex-col items-center justify-center gap-1 px-1 py-6 text-neutral-400 transition-colors hover:text-brand"
