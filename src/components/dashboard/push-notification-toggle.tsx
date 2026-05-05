@@ -1,11 +1,33 @@
 "use client";
 
-import { Bell, BellOff, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Bell, BellOff, Loader2, Send } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 export function PushNotificationToggle() {
   const { permission, isSubscribed, isLoading, subscribe, unsubscribe, isSupported } =
     usePushNotifications();
+  const [testState, setTestState] = useState<"idle" | "sending" | "ok" | "error">("idle");
+  const [testMsg, setTestMsg] = useState("");
+
+  const sendTest = async () => {
+    setTestState("sending");
+    try {
+      const res = await fetch("/api/push/test");
+      const json = await res.json();
+      if (res.ok) {
+        setTestState("ok");
+        setTestMsg("Notificación enviada ✓");
+      } else {
+        setTestState("error");
+        setTestMsg(json.error || "Error desconocido");
+      }
+    } catch {
+      setTestState("error");
+      setTestMsg("Error de red");
+    }
+    setTimeout(() => setTestState("idle"), 6000);
+  };
 
   // Hide silently on unsupported browsers (old Safari, etc.)
   if (!isSupported) return null;
@@ -43,38 +65,63 @@ export function PushNotificationToggle() {
   }
 
   return (
-    <div className="flex items-center justify-between rounded-md border border-neutral-200 bg-[#EDE6CA]/50 px-4 py-3">
-      <div className="flex items-center gap-3">
-        {isSubscribed ? (
-          <Bell className="h-4 w-4 text-brand" />
-        ) : (
-          <BellOff className="h-4 w-4 text-neutral-400" />
-        )}
-        <div>
-          <p className="text-sm font-medium text-neutral-700">
-            Notificaciones push
-          </p>
-          <p className="text-xs text-neutral-400">
-            {isSubscribed
-              ? "Recibirás alertas de nuevas citas y recordatorios."
-              : "Activa para recibir alertas en tu celular."}
-          </p>
+    <div className="space-y-2">
+      <div className="flex items-center justify-between rounded-md border border-neutral-200 bg-[#EDE6CA]/50 px-4 py-3">
+        <div className="flex items-center gap-3">
+          {isSubscribed ? (
+            <Bell className="h-4 w-4 text-brand" />
+          ) : (
+            <BellOff className="h-4 w-4 text-neutral-400" />
+          )}
+          <div>
+            <p className="text-sm font-medium text-neutral-700">
+              Notificaciones push
+            </p>
+            <p className="text-xs text-neutral-400">
+              {isSubscribed
+                ? "Recibirás alertas de nuevas citas y recordatorios."
+                : "Activa para recibir alertas en tu celular."}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {isSubscribed && (
+            <button
+              onClick={sendTest}
+              disabled={testState === "sending"}
+              title="Enviar notificación de prueba"
+              className="flex items-center gap-1.5 rounded-sm border border-neutral-300 bg-white px-3 py-1.5 text-xs uppercase tracking-[0.1em] text-neutral-600 transition-colors hover:border-brand hover:text-brand disabled:opacity-50"
+            >
+              {testState === "sending" ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Send className="h-3 w-3" />
+              )}
+              Probar
+            </button>
+          )}
+          <button
+            onClick={isSubscribed ? unsubscribe : subscribe}
+            disabled={isLoading}
+            className="flex items-center gap-2 rounded-sm border border-neutral-300 bg-white px-3 py-1.5 text-xs uppercase tracking-[0.1em] text-neutral-600 transition-colors hover:border-brand hover:text-brand disabled:opacity-50"
+          >
+            {isLoading ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : isSubscribed ? (
+              "Desactivar"
+            ) : (
+              "Activar"
+            )}
+          </button>
         </div>
       </div>
 
-      <button
-        onClick={isSubscribed ? unsubscribe : subscribe}
-        disabled={isLoading}
-        className="flex items-center gap-2 rounded-sm border border-neutral-300 bg-white px-3 py-1.5 text-xs uppercase tracking-[0.1em] text-neutral-600 transition-colors hover:border-brand hover:text-brand disabled:opacity-50"
-      >
-        {isLoading ? (
-          <Loader2 className="h-3 w-3 animate-spin" />
-        ) : isSubscribed ? (
-          "Desactivar"
-        ) : (
-          "Activar"
-        )}
-      </button>
+      {testState !== "idle" && testMsg && (
+        <p className={`text-xs px-1 ${testState === "ok" ? "text-green-600" : "text-red-500"}`}>
+          {testMsg}
+        </p>
+      )}
     </div>
   );
 }
