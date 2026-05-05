@@ -19,12 +19,19 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServerSupabaseClient();
 
-    // Service role client bypasses RLS for patient insert/lookup (public booking flow)
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
+    // Service role client bypasses RLS for patient insert/lookup (public booking flow).
+    // Falls back to anon client if service role key is not configured.
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceRoleKey) {
+      console.error("[book-appointment] SUPABASE_SERVICE_ROLE_KEY is not set — patient operations may fail due to RLS");
+    }
+    const supabaseAdmin = serviceRoleKey
+      ? createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          serviceRoleKey,
+          { auth: { autoRefreshToken: false, persistSession: false } }
+        )
+      : supabase;
 
     // 1. Check if the slot is still available
     const { data: existing } = await supabase
@@ -93,6 +100,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (appointmentError) {
+      console.error("[book-appointment] Appointment insert error:", appointmentError);
       if (appointmentError.code === "23505") {
         return NextResponse.json(
           { error: "El horario seleccionado ya no está disponible. Por favor, elige otro." },
