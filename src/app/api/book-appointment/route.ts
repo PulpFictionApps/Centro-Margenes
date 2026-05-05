@@ -141,17 +141,22 @@ export async function POST(request: NextRequest) {
       cancellationToken: cancelToken || undefined,
     }).catch((err) => console.error("[Email] fire-and-forget failed:", err));
 
-    // Push notification to the therapist (fire-and-forget)
+    // Push notification to the therapist — awaited so Vercel doesn't kill it before it finishes
     const therapistUserId = (therapistRes.data as { user_id?: string } | null)?.user_id ?? null;
     console.log("[Push] therapistId:", therapistId, "user_id:", therapistUserId);
 
     if (therapistUserId) {
-      sendPushToUser(supabaseAdmin, therapistUserId, {
-        title: "Nueva cita agendada 📅",
-        body: `${patient.name.trim()} reservó para el ${date} a las ${time}.`,
-        url: "/dashboard/appointments",
-        tag: "new-appointment",
-      }).catch((err) => console.error("[Push] sendPushToUser failed:", err));
+      try {
+        await sendPushToUser(supabaseAdmin, therapistUserId, {
+          title: "Nueva cita agendada 📅",
+          body: `${patient.name.trim()} reservó para el ${date} a las ${time}.`,
+          url: "/dashboard/appointments",
+          tag: "new-appointment",
+        });
+        console.log("[Push] notification sent to user", therapistUserId);
+      } catch (err) {
+        console.error("[Push] sendPushToUser failed:", err);
+      }
     } else {
       console.warn("[Push] No user_id found for therapist", therapistId, "— skipping push");
     }
