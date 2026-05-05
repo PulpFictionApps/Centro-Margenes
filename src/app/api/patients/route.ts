@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
         .select("patient_id")
         .eq("therapist_id", therapist.id);
 
-      const patientIds = [...new Set((apptRows || []).map((r) => r.patient_id))];
+      const patientIds = Array.from(new Set((apptRows || []).map((r) => r.patient_id)));
 
       if (patientIds.length === 0) {
         return NextResponse.json({ patients: [], total: 0, page, limit });
