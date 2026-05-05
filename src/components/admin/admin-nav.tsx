@@ -46,7 +46,7 @@ export function AdminNav({ adminName }: AdminNavProps) {
 
   return (
     <>
-      <header className="border-b border-neutral-200 bg-[#EDE6CA]">
+      <header className="border-b border-neutral-200 bg-[#EDE6CA] overflow-hidden">
         <div className="mx-auto flex h-[4.5rem] max-w-[1200px] items-center justify-between px-4 sm:px-6">
           {/* Left: logo + desktop nav */}
           <div className="flex items-center gap-6">
@@ -55,20 +55,21 @@ export function AdminNav({ adminName }: AdminNavProps) {
                 Admin
               </span>
             </Link>
-            <nav className="hidden items-center gap-1 md:flex">
+            <nav className="hidden items-center gap-0.5 md:flex">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
+                  title={item.label}
                   className={cn(
-                    "flex items-center gap-2 px-3 py-2 text-[11px] uppercase tracking-[0.15em] transition-colors",
+                    "flex items-center gap-2 px-2.5 py-2 text-[11px] uppercase tracking-[0.15em] transition-colors lg:px-3",
                     isActive(item)
                       ? "text-brand"
                       : "text-neutral-400 hover:text-neutral-700"
                   )}
                 >
-                  <item.icon className="h-4 w-4" />
-                  <span>{item.label}</span>
+                  <item.icon className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden lg:inline">{item.label}</span>
                 </Link>
               ))}
             </nav>
