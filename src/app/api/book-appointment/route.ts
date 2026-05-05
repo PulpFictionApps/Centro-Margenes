@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import { sendAppointmentConfirmation } from "@/lib/email";
 
 export const dynamic = 'force-dynamic';
@@ -18,6 +19,13 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServerSupabaseClient();
 
+    // Service role client bypasses RLS for patient insert/lookup (public booking flow)
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
     // 1. Check if the slot is still available
     const { data: existing } = await supabase
       .from("appointments")
@@ -35,31 +43,45 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Insert patient
-    const { data: patientRow, error: patientError } = await supabase
-      .from("patients")
-      .insert({
-        name: patient.name.trim(),
-        email: patient.email.trim(),
-        phone: patient.phone.trim(),
-        birthdate: patient.birthdate || null,
-        document: patient.document?.trim() || null,
-      })
-      .select("id")
-      .single();
+    // 2. Find or create patient (using service role to bypass RLS)
+    let patientId: string;
 
-    if (patientError || !patientRow) {
-      return NextResponse.json(
-        { error: "No se pudo registrar al paciente." },
-        { status: 500 }
-      );
+    const { data: existingPatient } = await supabaseAdmin
+      .from("patients")
+      .select("id")
+      .eq("email", patient.email.trim().toLowerCase())
+      .maybeSingle();
+
+    if (existingPatient) {
+      patientId = existingPatient.id;
+    } else {
+      const { data: newPatient, error: patientError } = await supabaseAdmin
+        .from("patients")
+        .insert({
+          name: patient.name.trim(),
+          email: patient.email.trim().toLowerCase(),
+          phone: patient.phone.trim(),
+          birthdate: patient.birthdate || null,
+          document: patient.document?.trim() || null,
+        })
+        .select("id")
+        .single();
+
+      if (patientError || !newPatient) {
+        console.error("Patient insert error:", patientError);
+        return NextResponse.json(
+          { error: "No se pudo registrar al paciente." },
+          { status: 500 }
+        );
+      }
+      patientId = newPatient.id;
     }
 
     // 3. Insert appointment — the DB unique index guards against races
-    const { data: appointmentRow, error: appointmentError } = await supabase
+    const { data: appointmentRow, error: appointmentError } = await supabaseAdmin
       .from("appointments")
       .insert({
-        patient_id: patientRow.id,
+        patient_id: patientId,
         therapist_id: therapistId,
         treatment_id: null,
         branch_id: branchId,
