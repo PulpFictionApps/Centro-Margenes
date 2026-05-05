@@ -328,7 +328,7 @@ export function AppointmentsList({ therapistId }: AppointmentsListProps) {
                 type="date"
                 value={rescheduleDate}
                 onChange={(e) => setRescheduleDate(e.target.value)}
-                className="mt-1 block w-40 border border-neutral-300 bg-white px-3 py-2 text-sm text-brand outline-none focus:border-brand"
+                className="mt-1 block w-full sm:w-40 border border-neutral-300 bg-white px-3 py-2 text-sm text-brand outline-none focus:border-brand"
               />
             </div>
             <div>
@@ -337,7 +337,7 @@ export function AppointmentsList({ therapistId }: AppointmentsListProps) {
                 type="time"
                 value={rescheduleTime}
                 onChange={(e) => setRescheduleTime(e.target.value)}
-                className="mt-1 block w-32 border border-neutral-300 bg-white px-3 py-2 text-sm text-brand outline-none focus:border-brand"
+                className="mt-1 block w-full sm:w-32 border border-neutral-300 bg-white px-3 py-2 text-sm text-brand outline-none focus:border-brand"
               />
             </div>
             <button

@@ -185,7 +185,85 @@ export function PatientsListPage({ therapist }: PatientsListPageProps) {
                 : "No tienes pacientes registrados"}
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+              {/* Mobile cards — visible below md */}
+              <div className="block md:hidden space-y-3">
+                {filteredPatients.map((patient) => (
+                  <div key={patient.id} className="rounded-lg border border-neutral-200 bg-white p-4 space-y-3">
+                    {/* Name */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-brand/10 text-sm font-semibold text-brand">
+                        {patient.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-neutral-900 truncate">{patient.name}</div>
+                        {patient.document && <div className="text-xs text-neutral-500">{patient.document}</div>}
+                      </div>
+                      <Badge variant="secondary" className="flex-shrink-0 text-xs">
+                        {patient.total_sessions || 0} ses.
+                      </Badge>
+                    </div>
+                    {/* Contact */}
+                    <div className="space-y-1">
+                      {patient.email && (
+                        <div className="flex items-center gap-2 text-xs text-neutral-600">
+                          <Mail className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">{patient.email}</span>
+                        </div>
+                      )}
+                      {patient.phone && (
+                        <div className="flex items-center gap-2 text-xs text-neutral-600">
+                          <Phone className="h-3 w-3 flex-shrink-0" />
+                          {patient.phone}
+                        </div>
+                      )}
+                    </div>
+                    {/* Dates */}
+                    <div className="flex flex-wrap gap-4 text-xs text-neutral-500">
+                      <div>
+                        <span className="block text-[10px] uppercase tracking-wider text-neutral-400">Última cita</span>
+                        {formatDateShort(patient.last_appointment)}
+                      </div>
+                      {patient.next_appointment && (
+                        <div>
+                          <span className="block text-[10px] uppercase tracking-wider text-neutral-400">Próxima cita</span>
+                          <Badge variant="outline" className="text-xs">
+                            {formatDateShort(patient.next_appointment)}
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                    {/* Actions */}
+                    <div className="flex gap-2 pt-2 border-t border-neutral-100">
+                      <Link href={`/dashboard/patients/${patient.id}`} className="flex-1">
+                        <Button variant="outline" size="sm" className="w-full gap-2">
+                          <User className="h-4 w-4" />
+                          Perfil
+                        </Button>
+                      </Link>
+                      {patient.phone && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 gap-2"
+                          onClick={() =>
+                            window.open(
+                              `https://wa.me/${patient.phone}?text=Hola%20${encodeURIComponent(patient.name.split(" ")[0])},`,
+                              "_blank"
+                            )
+                          }
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                          WhatsApp
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop table — visible from md */}
+              <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-neutral-200">
@@ -318,7 +396,8 @@ export function PatientsListPage({ therapist }: PatientsListPageProps) {
                   ))}
                 </tbody>
               </table>
-            </div>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

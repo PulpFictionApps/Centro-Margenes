@@ -211,7 +211,7 @@ export function AppointmentDetailModal({
 
           {/* Date and time */}
           <div className="p-4 bg-neutral-50 rounded-lg">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-brand" />
                 <span className="font-medium capitalize">{formatDate(appointment.date)}</span>
@@ -233,16 +233,16 @@ export function AppointmentDetailModal({
           {appointment.patient && (
             <div className="space-y-3">
               <h3 className="font-semibold text-neutral-800">Paciente</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="flex items-center gap-2 p-3 bg-neutral-50 rounded-lg">
-                  <User className="h-4 w-4 text-neutral-400" />
-                  <span>{appointment.patient.name}</span>
+                  <User className="h-4 w-4 text-neutral-400 flex-shrink-0" />
+                  <span className="truncate">{appointment.patient.name}</span>
                 </div>
                 <div className="flex items-center gap-2 p-3 bg-neutral-50 rounded-lg">
-                  <Phone className="h-4 w-4 text-neutral-400" />
+                  <Phone className="h-4 w-4 text-neutral-400 flex-shrink-0" />
                   <span>{appointment.patient.phone}</span>
                 </div>
-                <div className="flex items-center gap-2 p-3 bg-neutral-50 rounded-lg col-span-2">
+                <div className="flex items-center gap-2 p-3 bg-neutral-50 rounded-lg sm:col-span-2">
                   <Mail className="h-4 w-4 text-neutral-400" />
                   <span>{appointment.patient.email}</span>
                 </div>
@@ -254,7 +254,7 @@ export function AppointmentDetailModal({
           {showReschedule && appointment.status === "scheduled" && (
             <div className="p-4 border rounded-lg space-y-3">
               <h3 className="font-semibold">Reagendar cita</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>Nueva fecha</Label>
                   <Input

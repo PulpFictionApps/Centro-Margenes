@@ -29,6 +29,14 @@ export function CalendarPage({ therapist }: CalendarPageProps) {
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentWithRelations | null>(null);
   const [visibleStart, setVisibleStart] = useState<string>(new Date().toISOString().split("T")[0]);
   const [visibleEnd, setVisibleEnd] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -149,15 +157,16 @@ export function CalendarPage({ therapist }: CalendarPageProps) {
               <div className="text-neutral-500">Cargando citas...</div>
             </div>
           ) : (
-            <div className="rounded-lg border p-2">
+            <div className="rounded-lg border p-2 overflow-hidden">
               <FullCalendar
+                key={isMobile ? "mobile" : "desktop"}
                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                initialView="dayGridMonth"
-                headerToolbar={{
-                  left: "prev,next today",
-                  center: "title",
-                  right: "dayGridMonth,timeGridWeek,timeGridDay",
-                }}
+                initialView={isMobile ? "timeGridDay" : "dayGridMonth"}
+                headerToolbar={
+                  isMobile
+                    ? { left: "prev,next", center: "title", right: "today" }
+                    : { left: "prev,next today", center: "title", right: "dayGridMonth,timeGridWeek,timeGridDay" }
+                }
                 buttonText={{
                   today: "Hoy",
                   month: "Mes",
