@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
+export const dynamic = 'force-dynamic';
+
 // DELETE /api/clinical-records/[id]/attachments/[attachmentId] - Delete attachment
 export async function DELETE(
   request: NextRequest,

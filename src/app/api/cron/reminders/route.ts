@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { sendAppointmentReminder, type AppointmentEmailData } from "@/lib/email";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/cron/reminders?secret=<CRON_SECRET>
  *
