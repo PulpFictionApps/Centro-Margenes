@@ -96,34 +96,39 @@ export function AdminNav({ adminName }: AdminNavProps) {
       </header>
 
       {/* Mobile bottom nav bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-neutral-200 bg-[#EDE6CA] md:hidden">
-        {navItems.map((item) => (
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200 bg-[#EDE6CA] md:hidden">
+        <div
+          className="flex overflow-x-auto"
+          style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
+        >
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex flex-1 flex-col items-center justify-center gap-1 px-1 py-2.5 transition-colors",
+                isActive(item) ? "text-brand" : "text-neutral-400 hover:text-brand"
+              )}
+            >
+              <item.icon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
+              <span className="text-[8px] uppercase tracking-[0.03em] leading-none">{item.shortLabel}</span>
+            </Link>
+          ))}
           <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "flex flex-1 flex-col items-center justify-center gap-1 px-1 py-2.5 transition-colors",
-              isActive(item) ? "text-brand" : "text-neutral-400 hover:text-brand"
-            )}
+            href="/dashboard"
+            className="flex flex-1 flex-col items-center justify-center gap-1 px-1 py-2.5 text-neutral-400 transition-colors hover:text-brand"
           >
-            <item.icon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
-            <span className="text-[8px] uppercase tracking-[0.03em] leading-none">{item.shortLabel}</span>
+            <ArrowLeft className="h-5 w-5 flex-shrink-0" />
+            <span className="text-[8px] uppercase tracking-[0.03em] leading-none">Volver</span>
           </Link>
-        ))}
-        <Link
-          href="/dashboard"
-          className="flex flex-1 flex-col items-center justify-center gap-1 px-1 py-2.5 text-neutral-400 transition-colors hover:text-brand"
-        >
-          <ArrowLeft className="h-5 w-5 flex-shrink-0" />
-          <span className="text-[8px] uppercase tracking-[0.03em] leading-none">Volver</span>
-        </Link>
-        <button
-          onClick={handleLogout}
-          className="flex flex-1 flex-col items-center justify-center gap-1 px-1 py-2.5 text-neutral-400 transition-colors hover:text-brand"
-        >
-          <LogOut className="h-5 w-5 flex-shrink-0" />
-          <span className="text-[8px] uppercase tracking-[0.03em] leading-none">Salir</span>
-        </button>
+          <button
+            onClick={handleLogout}
+            className="flex flex-1 flex-col items-center justify-center gap-1 px-1 py-2.5 text-neutral-400 transition-colors hover:text-brand"
+          >
+            <LogOut className="h-5 w-5 flex-shrink-0" />
+            <span className="text-[8px] uppercase tracking-[0.03em] leading-none">Salir</span>
+          </button>
+        </div>
       </nav>
     </>
   );
