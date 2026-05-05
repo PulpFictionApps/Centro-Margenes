@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { Therapist, Patient, ClinicalRecordWithRelations } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,8 +11,7 @@ import {
   FileText, 
   User, 
   Calendar,
-  ChevronRight,
-  Filter 
+  ChevronRight
 } from "lucide-react";
 import { PatientDetailModal } from "./patient-detail-modal";
 import { ClinicalRecordModal } from "./clinical-record-modal";
@@ -32,8 +30,6 @@ export function ClinicalRecordsPage({ therapist }: ClinicalRecordsPageProps) {
   const [showPatientModal, setShowPatientModal] = useState(false);
   const [showRecordModal, setShowRecordModal] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<ClinicalRecordWithRelations | null>(null);
-
-  const supabase = createClient();
 
   const fetchPatients = useCallback(async () => {
     setLoading(true);
@@ -226,7 +222,7 @@ export function ClinicalRecordsPage({ therapist }: ClinicalRecordsPageProps) {
                 {/* Timeline */}
                 <div className="relative">
                   <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-neutral-200" />
-                  {records.map((record, index) => (
+                  {records.map((record) => (
                     <div
                       key={record.id}
                       className="relative pl-10 pb-6 last:pb-0"

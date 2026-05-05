@@ -10,16 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Search,
-  Plus,
   User,
   Phone,
   Mail,
-  MapPin,
-  ChevronRight,
   MessageCircle,
-  Calendar,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -95,7 +90,7 @@ export function PatientsListPage({ therapist }: PatientsListPageProps) {
 
   // Filter patients by search and active status
   useEffect(() => {
-    let filtered = patients.filter((patient) => {
+    const filtered = patients.filter((patient) => {
       const matchesSearch =
         !search ||
         patient.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -118,16 +113,6 @@ export function PatientsListPage({ therapist }: PatientsListPageProps) {
     if (!dateString) return "—";
     try {
       return format(parseISO(dateString), "dd MMM yyyy", { locale: es });
-    } catch {
-      return "—";
-    }
-  };
-
-  const formatDateRelative = (dateString?: string) => {
-    if (!dateString) return "—";
-    try {
-      const date = parseISO(dateString);
-      return format(date, "EEEE d MMM', ' HH:mm", { locale: es });
     } catch {
       return "—";
     }

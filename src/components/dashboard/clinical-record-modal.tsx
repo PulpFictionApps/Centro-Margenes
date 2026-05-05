@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import { Patient, ClinicalRecordWithRelations, ClinicalAttachment } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   FileText, 
   Upload, 
-  X, 
   Download, 
   Trash2, 
   Paperclip,
@@ -26,7 +25,6 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { cn } from "@/lib/utils";
 
 const recordSchema = z.object({
   session_date: z.string().min(1, "La fecha es obligatoria"),
@@ -53,7 +51,6 @@ interface ClinicalRecordModalProps {
 export function ClinicalRecordModal({
   patient,
   record,
-  therapistId,
   onClose,
   onSave,
 }: ClinicalRecordModalProps) {
@@ -68,7 +65,7 @@ export function ClinicalRecordModal({
   const {
     register,
     handleSubmit,
-    formState: { errors, isDirty },
+    formState: { errors },
   } = useForm<RecordFormData>({
     resolver: zodResolver(recordSchema),
     defaultValues: {

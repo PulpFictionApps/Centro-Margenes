@@ -10,7 +10,7 @@ interface EvaluationsPageProps {
   therapist: Therapist;
 }
 
-export function EvaluationsPage({ therapist }: EvaluationsPageProps) {
+export function EvaluationsPage({}: EvaluationsPageProps) {
   const [evaluations, setEvaluations] = useState<EvaluationWithRelations[]>([]);
   const [averageRating, setAverageRating] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -207,7 +207,7 @@ export function EvaluationsPage({ therapist }: EvaluationsPageProps) {
                             </div>
                             {evaluation.comment && (
                               <p className="mt-2 text-neutral-600">
-                                "{evaluation.comment}"
+                                &ldquo;{evaluation.comment}&rdquo;
                               </p>
                             )}
                           </div>

@@ -16,7 +16,6 @@ import {
   Star,
   Calendar,
   Mail,
-  MoreVertical
 } from "lucide-react";
 import { TeamMemberModal } from "./team-member-modal";
 import { cn } from "@/lib/utils";

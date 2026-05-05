@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Therapist, Patient, ClinicalRecordWithRelations, Appointment } from "@/lib/types";
@@ -14,7 +13,6 @@ import {
   User,
   Mail,
   Phone,
-  MapPin,
   Calendar,
   FileText,
   Edit,

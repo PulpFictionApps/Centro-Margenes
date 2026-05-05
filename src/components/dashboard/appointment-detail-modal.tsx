@@ -36,7 +36,6 @@ interface AppointmentDetailModalProps {
 
 export function AppointmentDetailModal({
   appointment,
-  therapist,
   onClose,
   onUpdate,
 }: AppointmentDetailModalProps) {

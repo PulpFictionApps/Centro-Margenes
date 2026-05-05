@@ -76,7 +76,7 @@ export async function POST(
     const filename = `${params.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
 
     // Upload to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from("clinical-attachments")
       .upload(filename, file, {
         contentType: file.type,
