@@ -43,7 +43,7 @@ export default async function DashboardLayout({
       <DashboardNav
         therapistName={therapist?.name ?? user.email ?? "Terapeuta"}
       />
-      <div className="flex-1 px-4 py-6 sm:px-6 sm:py-10">
+      <div className="flex-1 px-4 py-6 pb-24 sm:px-6 sm:py-10 md:pb-10">
         <div className="mx-auto max-w-[1200px]">{children}</div>
       </div>
     </div>

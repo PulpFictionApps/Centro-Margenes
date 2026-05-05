@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard,
@@ -13,8 +12,6 @@ import {
   LogOut,
   FileText,
   Star,
-  Menu,
-  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +34,6 @@ interface DashboardNavProps {
 export function DashboardNav({ therapistName }: DashboardNavProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -61,7 +57,7 @@ export function DashboardNav({ therapistName }: DashboardNavProps) {
               </span>
             </Link>
             <span className="hidden h-4 w-px bg-neutral-300 md:block" />
-            {/* Desktop nav — icon only, always */}
+            {/* Desktop nav — icon + label */}
             <nav className="hidden items-center gap-0 md:flex">
               {navItems.map((item) => (
                 <Link
@@ -69,13 +65,14 @@ export function DashboardNav({ therapistName }: DashboardNavProps) {
                   href={item.href}
                   title={item.label}
                   className={cn(
-                    "flex items-center justify-center h-9 w-9 transition-colors rounded-sm",
+                    "flex flex-col items-center justify-center gap-0.5 px-2.5 py-1.5 transition-colors rounded-sm",
                     isActive(item)
                       ? "text-brand"
                       : "text-neutral-400 hover:text-brand hover:bg-[#5b2525]/5"
                   )}
                 >
                   <item.icon className="h-4 w-4" aria-hidden="true" />
+                  <span className="text-[8px] uppercase tracking-[0.05em] leading-none">{item.label}</span>
                 </Link>
               ))}
             </nav>
@@ -89,59 +86,38 @@ export function DashboardNav({ therapistName }: DashboardNavProps) {
             <button
               onClick={handleLogout}
               title="Cerrar sesión"
-              className="hidden h-9 w-9 items-center justify-center rounded-sm text-neutral-400 transition-colors hover:text-brand md:flex"
+              className="hidden flex-col items-center justify-center gap-0.5 px-2.5 py-1.5 rounded-sm text-neutral-400 transition-colors hover:text-brand md:flex"
             >
               <LogOut className="h-4 w-4" />
-            </button>
-            {/* Hamburger — mobile only */}
-            <button
-              onClick={() => setMobileOpen((v) => !v)}
-              aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
-              className="flex h-9 w-9 items-center justify-center text-neutral-600 transition-colors hover:text-brand md:hidden"
-            >
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              <span className="text-[8px] uppercase tracking-[0.05em] leading-none">Salir</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Mobile drawer */}
-      {mobileOpen && (
-        <div className="border-b border-neutral-200 bg-[#EDE6CA] md:hidden">
-          <nav className="mx-auto max-w-[1200px] space-y-0.5 px-4 py-3">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 rounded-sm px-4 py-3 text-[11px] uppercase tracking-[0.15em] transition-colors",
-                  isActive(item)
-                    ? "bg-[#5b2525]/10 text-brand"
-                    : "text-neutral-500 hover:bg-[#5b2525]/5 hover:text-brand"
-                )}
-              >
-                <item.icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                {item.label}
-              </Link>
-            ))}
-
-            {/* Footer: name + logout */}
-            <div className="mt-2 flex items-center justify-between border-t border-neutral-200 px-4 pb-2 pt-4">
-              <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-400">
-                {therapistName}
-              </p>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-brand"
-              >
-                <LogOut className="h-4 w-4" />
-                Salir
-              </button>
-            </div>
-          </nav>
-        </div>
-      )}
+      {/* Mobile bottom nav bar */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex overflow-x-auto border-t border-neutral-200 bg-[#EDE6CA] md:hidden">
+        {navItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "flex min-w-[4rem] flex-1 flex-col items-center justify-center gap-1 px-1 py-2.5 transition-colors",
+              isActive(item) ? "text-brand" : "text-neutral-400 hover:text-brand"
+            )}
+          >
+            <item.icon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
+            <span className="text-[9px] uppercase tracking-[0.05em] leading-none">{item.label}</span>
+          </Link>
+        ))}
+        <button
+          onClick={handleLogout}
+          className="flex min-w-[4rem] flex-col items-center justify-center gap-1 px-1 py-2.5 text-neutral-400 transition-colors hover:text-brand"
+        >
+          <LogOut className="h-5 w-5 flex-shrink-0" />
+          <span className="text-[9px] uppercase tracking-[0.05em] leading-none">Salir</span>
+        </button>
+      </nav>
     </>
   );
 }
