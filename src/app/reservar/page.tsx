@@ -145,7 +145,7 @@ export default function ReservarPage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative flex min-h-[70vh] items-center overflow-hidden">
+      <section className="relative flex min-h-[calc(100dvh-5.9rem)] items-center overflow-hidden">
         {/* Left content */}
         <div className="relative z-10 flex w-full flex-col items-center bg-[#EDE6CA] px-6 py-24 text-center lg:w-1/2 lg:items-start lg:py-32 lg:pl-[8%] lg:pr-16 lg:text-left">
           <h3 className="text-[11px] font-normal uppercase tracking-[0.25em] text-neutral-500">
