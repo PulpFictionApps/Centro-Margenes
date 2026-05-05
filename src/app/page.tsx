@@ -76,7 +76,7 @@ export default function HomePage() {
             </div>
 
             {/* Title overlapping — positioned absolutely over image */}
-            <h2 className="pointer-events-none absolute left-[30%] top-4 z-10 font-playfair text-5xl font-normal leading-[1.1] text-brand lg:left-[28%] lg:top-8 lg:text-8xl">
+            <h2 className="pointer-events-none absolute left-[28%] top-4 z-10 font-playfair text-3xl font-normal leading-[1.1] text-brand sm:text-5xl lg:left-[28%] lg:top-8 lg:text-8xl">
               EL PROCESO
               <br />
                TERAPÉUTICO

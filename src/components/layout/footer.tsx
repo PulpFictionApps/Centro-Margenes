@@ -61,7 +61,7 @@ export function Footer() {
           </div>
 
           {/* Right: Contact + social */}
-          <div className="flex flex-col items-end justify-between text-right">
+          <div className="flex flex-col items-start sm:items-end justify-between text-left sm:text-right">
             <div>
               <h4 className="font-playfair text-lg font-normal uppercase tracking-wide text-white">
                 Contacto

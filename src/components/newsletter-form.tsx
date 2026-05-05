@@ -40,19 +40,19 @@ export function NewsletterForm() {
 
   return (
     <div className="relative w-full max-w-md">
-      <form onSubmit={handleSubmit} className="flex gap-0">
+      <form onSubmit={handleSubmit} className="flex flex-wrap gap-0 sm:flex-nowrap">
         <input
           type="email"
           placeholder="Tu correo electrónico"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="flex-1 border-y border-l border-white/20 bg-transparent px-5 py-4 text-xs uppercase tracking-[0.15em] text-white placeholder:text-white/30 focus:border-white/40 focus:outline-none"
+          className="min-w-0 flex-1 border border-white/20 bg-transparent px-5 py-4 text-xs uppercase tracking-[0.15em] text-white placeholder:text-white/30 focus:border-white/40 focus:outline-none sm:border-y sm:border-l sm:border-r-0"
         />
         <button
           type="submit"
           disabled={status === "loading"}
-          className="btn-fill btn-fill-white border-y border-r border-white/20 px-6 py-4 text-xs uppercase tracking-[0.15em] text-white transition-all duration-300 hover:bg-white/10 disabled:opacity-50"
+          className="btn-fill btn-fill-white w-full border border-white/20 px-6 py-4 text-xs uppercase tracking-[0.15em] text-white transition-all duration-300 hover:bg-white/10 disabled:opacity-50 sm:w-auto sm:border-y sm:border-r sm:border-l-0"
         >
           {status === "loading" ? "Enviando..." : "Suscribirse"}
         </button>

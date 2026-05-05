@@ -74,7 +74,7 @@ export function TherapistDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto bg-[#EDE6CA] border-neutral-300/40">
+      <DialogContent className="max-w-2xl bg-[#EDE6CA] border-neutral-300/40">
         <DialogHeader>
           <DialogTitle className="font-playfair text-2xl font-normal text-brand">
             {therapist.name}

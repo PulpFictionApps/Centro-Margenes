@@ -318,8 +318,8 @@ export function BookingWizardModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-[#EDE6CA] border-neutral-300/40">
-        <DialogHeader className="pb-2">
+      <DialogContent className="max-w-lg sm:max-w-2xl overflow-hidden flex flex-col bg-[#EDE6CA] border-neutral-300/40">
+        <DialogHeader className="shrink-0 pb-2">
           <DialogTitle className="font-playfair text-2xl font-normal text-brand">Reservar una cita</DialogTitle>
           <DialogDescription className="text-[11px] uppercase tracking-[0.2em] text-neutral-500">
             Paso {step} de 6 — {STEPS[step - 1].label}
@@ -327,12 +327,12 @@ export function BookingWizardModal({
         </DialogHeader>
 
         {/* Step indicator */}
-        <div className="flex items-center justify-between px-2 py-1">
+        <div className="shrink-0 flex items-center justify-between px-1 py-1">
           {STEPS.map((s, index) => (
             <div key={s.id} className="flex items-center">
               <div className="flex flex-col items-center">
                 <div
-                  className={`flex h-8 w-8 items-center justify-center text-xs font-medium transition-all duration-200 ${
+                  className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center text-[10px] sm:text-xs font-medium transition-all duration-200 ${
                     step > s.id
                       ? "bg-brand text-white"
                       : step === s.id
@@ -341,7 +341,7 @@ export function BookingWizardModal({
                   }`}
                 >
                   {step > s.id ? (
-                    <Check className="h-3.5 w-3.5" />
+                    <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                   ) : (
                     s.id
                   )}
@@ -352,7 +352,7 @@ export function BookingWizardModal({
               </div>
               {index < STEPS.length - 1 && (
                 <div
-                  className={`mx-2 h-px w-6 sm:w-12 transition-colors ${
+                  className={`mx-1 sm:mx-2 h-px w-3 sm:w-10 transition-colors ${
                     step > s.id ? "bg-brand" : "bg-neutral-300"
                   }`}
                 />
@@ -363,14 +363,14 @@ export function BookingWizardModal({
 
         {/* Booking error */}
         {bookingError && (
-          <div className="rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="shrink-0 rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
             {bookingError}
           </div>
         )}
 
         {/* Step content */}
         <FormProvider {...form}>
-          <div className="min-h-[280px] py-2">
+          <div className="flex-1 overflow-y-auto min-h-0 py-2">
             {step === 1 && (
               <WizardStepBranch branches={branches} />
             )}
@@ -397,7 +397,7 @@ export function BookingWizardModal({
         </FormProvider>
 
         {/* Navigation */}
-        <div className="flex justify-between pt-4 border-t border-neutral-300/60">
+        <div className="shrink-0 flex justify-between pt-4 border-t border-neutral-300/60">
           <button
             type="button"
             onClick={handleBack}
