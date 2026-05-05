@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { ProfileEditor } from "@/components/dashboard/profile-editor";
+import { PushNotificationToggle } from "@/components/dashboard/push-notification-toggle";
 import type { Therapist } from "@/lib/types";
 
 export default async function ProfilePage() {
@@ -26,6 +27,12 @@ export default async function ProfilePage() {
           Edita tu información profesional visible para los pacientes.
         </p>
       </div>
+
+      <div className="space-y-3">
+        <p className="text-[11px] uppercase tracking-[0.15em] text-neutral-400">Notificaciones</p>
+        <PushNotificationToggle />
+      </div>
+
       <ProfileEditor therapist={therapist as Therapist | null} />
     </div>
   );

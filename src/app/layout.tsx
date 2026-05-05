@@ -3,6 +3,7 @@ import { Playfair_Display } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { LayoutShell } from "@/components/layout/layout-shell";
+import { ServiceWorkerRegister } from "@/components/service-worker-register";
 
 const leggibilmente = localFont({
   src: [
@@ -26,6 +27,7 @@ export const metadata: Metadata = {
   title: "Centro Márgenes | Centro de Atención Psicológica",
   description:
     "Centro de atención psicológica dedicado a tu bienestar emocional. Reserva tu cita con nuestros especialistas.",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
@@ -40,6 +42,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <LayoutShell>{children}</LayoutShell>
+        <ServiceWorkerRegister />
       </body>
     </html>
   );

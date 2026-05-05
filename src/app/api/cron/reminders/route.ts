@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { sendAppointmentReminder, type AppointmentEmailData } from "@/lib/email";
+import { sendPushToUser } from "@/lib/push";
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +24,16 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = createServerSupabaseClient();
+
+  // Service-role client for push subscription lookups (bypasses RLS)
+  const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY
+    ? createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY,
+        { auth: { autoRefreshToken: false, persistSession: false } }
+      )
+    : supabase;
+
   const now = new Date();
   const results = { sent24h: 0, sent2h: 0, errors: 0 };
 
@@ -50,7 +62,7 @@ export async function GET(request: NextRequest) {
       .select(`
         id, date, time, status,
         patients ( name, email ),
-        therapists ( name ),
+        therapists ( name, user_id ),
         branches ( name, type )
       `)
       .in("status", ["scheduled"])
@@ -98,6 +110,24 @@ export async function GET(request: NextRequest) {
     };
   }
 
+  // ── Helper: send push to therapist ──────────────────────────────
+  async function notifyTherapist(
+    appt: Record<string, unknown>,
+    hoursLabel: string
+  ) {
+    const therapist = appt.therapists as { name: string; user_id?: string } | null;
+    if (!therapist?.user_id) return;
+    const date = appt.date as string;
+    const time = appt.time as string;
+    const patient = appt.patients as { name: string } | null;
+    await sendPushToUser(supabaseAdmin, therapist.user_id, {
+      title: `Cita en ${hoursLabel} ⏰`,
+      body: `${patient?.name || "Paciente"} — ${date} a las ${time}`,
+      url: "/dashboard/calendar",
+      tag: `reminder-${appt.id as string}`,
+    }).catch((err) => console.error("[Push] reminder notification failed:", err));
+  }
+
   // ── Process 24-hour reminders ────────────────────────────────────
   const window24 = getWindow(24);
   const appointments24 = await fetchAppointmentsInWindow(window24.from, window24.to);
@@ -108,6 +138,8 @@ export async function GET(request: NextRequest) {
     const { error } = await sendAppointmentReminder(emailData, "24 horas");
     if (error) results.errors++;
     else results.sent24h++;
+    // Push notification to therapist (non-blocking)
+    await notifyTherapist(appt as unknown as Record<string, unknown>, "24 horas");
   }
 
   // ── Process 2-hour reminders ─────────────────────────────────────
@@ -120,6 +152,8 @@ export async function GET(request: NextRequest) {
     const { error } = await sendAppointmentReminder(emailData, "2 horas");
     if (error) results.errors++;
     else results.sent2h++;
+    // Push notification to therapist (non-blocking)
+    await notifyTherapist(appt as unknown as Record<string, unknown>, "2 horas");
   }
 
   return NextResponse.json({

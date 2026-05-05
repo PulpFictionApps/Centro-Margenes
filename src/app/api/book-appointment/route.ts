@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendAppointmentConfirmation } from "@/lib/email";
+import { sendPushToUser } from "@/lib/push";
 
 export const dynamic = 'force-dynamic';
 
@@ -138,6 +139,25 @@ export async function POST(request: NextRequest) {
       meetingLink: isOnline ? (process.env.DEFAULT_MEETING_LINK || null) : null,
       cancellationToken: cancelToken || undefined,
     }).catch((err) => console.error("[Email] fire-and-forget failed:", err));
+
+    // Push notification to the therapist (fire-and-forget)
+    const therapistUserId = await (async () => {
+      const { data } = await supabaseAdmin
+        .from("therapists")
+        .select("user_id")
+        .eq("id", therapistId)
+        .maybeSingle();
+      return data?.user_id as string | null;
+    })();
+
+    if (therapistUserId) {
+      sendPushToUser(supabaseAdmin, therapistUserId, {
+        title: "Nueva cita agendada 📅",
+        body: `${patient.name.trim()} reservó para el ${date} a las ${time}.`,
+        url: "/dashboard/appointments",
+        tag: "new-appointment",
+      }).catch((err) => console.error("[Push] new appointment notification failed:", err));
+    }
 
     return NextResponse.json({ success: true });
   } catch {
