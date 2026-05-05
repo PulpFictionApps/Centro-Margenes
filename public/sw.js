@@ -12,12 +12,24 @@ self.addEventListener("push", function (event) {
   const title = data.title || "Centro Márgenes";
   const options = {
     body: data.body || "",
+    // Icon shown beside the notification (192×192 recommended)
     icon: "/images/Imagotipo1.png",
-    badge: "/images/Imagotipo1.png",
+    // Small monochrome badge shown in Android status bar
+    badge: "/images/badge-96.svg",
     tag: data.tag || "default",
+    // renotify: show the alert even if the same tag already exists
     renotify: true,
+    // Keep the notification visible on lock screen until user interacts
+    requireInteraction: true,
+    // Vibration pattern (Android): buzz, pause, buzz
+    vibrate: [200, 100, 200],
+    // Silent false = play the default notification sound
+    silent: false,
     data: { url: data.url || "/dashboard" },
-    requireInteraction: false,
+    // Quick-action button shown below the notification body
+    actions: [
+      { action: "open", title: "Ver" },
+    ],
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
@@ -25,6 +37,8 @@ self.addEventListener("push", function (event) {
 
 self.addEventListener("notificationclick", function (event) {
   event.notification.close();
+
+  // Determine destination URL (action button or body tap)
   const url = event.notification.data?.url || "/dashboard";
 
   event.waitUntil(
