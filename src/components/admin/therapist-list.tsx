@@ -69,8 +69,8 @@ export function TherapistList({ initialTherapists }: TherapistListProps) {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-playfair text-3xl font-normal text-brand">
             Terapeutas
@@ -82,15 +82,120 @@ export function TherapistList({ initialTherapists }: TherapistListProps) {
         </div>
         <button
           onClick={handleCreate}
-          className="btn-fill btn-fill-tan flex items-center gap-2 border-y border-[#5b2525] px-6 py-3 text-[11px] uppercase tracking-[0.2em] text-[#5b2525] transition-all duration-300"
+          className="btn-fill btn-fill-tan flex items-center gap-2 border-y border-[#5b2525] px-5 py-3 text-[11px] uppercase tracking-[0.2em] text-[#5b2525] transition-all duration-300"
         >
           <Plus className="h-4 w-4" />
-          Nuevo terapeuta
+          <span>Nuevo terapeuta</span>
         </button>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto border border-neutral-200 bg-white">
+      {/* ── Mobile cards (hidden md+) ── */}
+      <div className="space-y-3 md:hidden">
+        {therapists.length === 0 ? (
+          <div className="border border-neutral-200 bg-white px-5 py-16 text-center text-sm text-neutral-400">
+            No hay terapeutas registrados.
+          </div>
+        ) : (
+          therapists.map((t) => (
+            <div
+              key={t.id}
+              className="border border-neutral-200 bg-white p-4"
+            >
+              {/* Header row */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  {t.photo_url ? (
+                    <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden">
+                      <Image
+                        src={t.photo_url}
+                        alt={t.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center bg-[#ddd6b3] font-playfair text-sm text-neutral-600">
+                      {getInitials(t.name)}
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-medium text-brand">{t.name}</p>
+                    <p className="text-xs text-neutral-400">{t.email}</p>
+                    <span
+                      className={`mt-1 inline-block border px-2 py-0.5 text-[9px] uppercase tracking-[0.1em] ${
+                        t.active !== false
+                          ? "border-green-300 bg-green-50 text-green-700"
+                          : "border-neutral-300 bg-neutral-100 text-neutral-500"
+                      }`}
+                    >
+                      {t.active !== false ? "Activo" : "Inactivo"}
+                    </span>
+                  </div>
+                </div>
+                {/* Action buttons */}
+                <div className="flex flex-shrink-0 items-center gap-0.5">
+                  <button
+                    onClick={() => setDetailTherapist(t)}
+                    title="Ver detalle"
+                    className="flex h-9 w-9 items-center justify-center text-neutral-400 transition-colors hover:text-brand"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleEdit(t)}
+                    title="Editar"
+                    className="flex h-9 w-9 items-center justify-center text-neutral-400 transition-colors hover:text-brand"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleToggleActive(t)}
+                    disabled={toggling === t.id}
+                    title={t.active !== false ? "Desactivar" : "Activar"}
+                    className={`flex h-9 w-9 items-center justify-center transition-colors disabled:opacity-50 ${
+                      t.active !== false
+                        ? "text-neutral-400 hover:text-red-600"
+                        : "text-neutral-400 hover:text-green-600"
+                    }`}
+                  >
+                    <Power className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Specialties + modality */}
+              <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                {t.offers_online && (
+                  <span className="border border-neutral-200 px-2 py-0.5 text-[9px] uppercase tracking-[0.1em] text-neutral-500">
+                    Online
+                  </span>
+                )}
+                {t.offers_in_person && (
+                  <span className="border border-neutral-200 px-2 py-0.5 text-[9px] uppercase tracking-[0.1em] text-neutral-500">
+                    Presencial
+                  </span>
+                )}
+                {t.specialties.slice(0, 3).map((s) => (
+                  <span
+                    key={s}
+                    className="border border-neutral-200 px-2 py-0.5 text-[9px] uppercase tracking-[0.1em] text-neutral-400"
+                  >
+                    {s}
+                  </span>
+                ))}
+                {t.specialties.length > 3 && (
+                  <span className="text-[10px] text-neutral-400">
+                    +{t.specialties.length - 3}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* ── Desktop table (hidden on mobile) ── */}
+      <div className="hidden overflow-x-auto border border-neutral-200 bg-white md:block">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-neutral-200">

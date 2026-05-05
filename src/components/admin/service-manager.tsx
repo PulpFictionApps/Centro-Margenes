@@ -107,7 +107,7 @@ export function ServiceManager({ initialServices }: ServiceManagerProps) {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-playfair text-3xl font-normal text-brand">
             Servicios
@@ -119,10 +119,10 @@ export function ServiceManager({ initialServices }: ServiceManagerProps) {
         </div>
         <button
           onClick={openCreate}
-          className="btn-fill btn-fill-tan flex items-center gap-2 border-y border-[#5b2525] px-6 py-3 text-[11px] uppercase tracking-[0.2em] text-[#5b2525] transition-all duration-300"
+          className="btn-fill btn-fill-tan flex items-center gap-2 border-y border-[#5b2525] px-5 py-3 text-[11px] uppercase tracking-[0.2em] text-[#5b2525] transition-all duration-300"
         >
           <Plus className="h-4 w-4" />
-          Nuevo servicio
+          <span>Nuevo servicio</span>
         </button>
       </div>
 

@@ -22,14 +22,14 @@ export default async function AdminLayout({
     .eq("user_id", user.id)
     .single();
 
-  if (!therapist || therapist.role !== "admin") {
+  if (!therapist || (therapist.role !== "admin" && therapist.role !== "super_admin")) {
     redirect("/dashboard");
   }
 
   return (
     <div className="flex min-h-screen flex-col bg-[#EDE6CA]">
       <AdminNav adminName={therapist.name ?? user.email ?? "Admin"} />
-      <div className="flex-1 px-6 py-10">
+      <div className="flex-1 px-4 py-6 sm:px-6 sm:py-10">
         <div className="mx-auto max-w-[1200px]">{children}</div>
       </div>
     </div>
