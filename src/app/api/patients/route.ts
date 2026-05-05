@@ -32,19 +32,23 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from("patients")
-      .select(`
-        *,
-        appointments!inner (
-          id,
-          therapist_id,
-          date,
-          status
-        )
-      `, { count: "exact" });
+      .select("*", { count: "exact" });
 
     // Filter by therapist unless admin
     if (therapist.role !== "admin" && therapist.role !== "super_admin") {
-      query = query.eq("appointments.therapist_id", therapist.id);
+      // Get patient IDs that have at least one appointment with this therapist
+      const { data: apptRows } = await supabase
+        .from("appointments")
+        .select("patient_id")
+        .eq("therapist_id", therapist.id);
+
+      const patientIds = [...new Set((apptRows || []).map((r) => r.patient_id))];
+
+      if (patientIds.length === 0) {
+        return NextResponse.json({ patients: [], total: 0, page, limit });
+      }
+
+      query = query.in("id", patientIds);
     }
 
     // Search by name, email, or document
@@ -61,13 +65,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Error al obtener pacientes" }, { status: 500 });
     }
 
-    // Remove duplicate patients and get unique list
-    const uniquePatients = Array.from(
-      new Map(patients?.map(p => [p.id, p]) || []).values()
-    );
-
     return NextResponse.json({
-      patients: uniquePatients,
+      patients: patients || [],
       total: count || 0,
       page,
       limit,

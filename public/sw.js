@@ -13,7 +13,7 @@ self.addEventListener("push", function (event) {
   const options = {
     body: data.body || "",
     // Icon shown beside the notification (192×192 recommended)
-    icon: "/images/Imagotipo1.png",
+    icon: "/images/Isotipo1.png",
     // Small monochrome badge shown in Android status bar
     badge: "/images/badge-96.svg",
     tag: data.tag || "default",

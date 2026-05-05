@@ -56,21 +56,24 @@ export function PatientsListPage({ therapist }: PatientsListPageProps) {
               .eq("therapist_id", therapist.id)
               .order("date", { ascending: false });
 
-            const lastAppt = appointments?.[0];
+            const lastCompleted = appointments?.find((a) => a.status === "completed");
             const nextAppt = appointments?.find(
-              (a) => new Date(a.date) > new Date() && a.status === "scheduled"
+              (a) => new Date(a.date) >= new Date() && a.status === "scheduled"
             );
 
             const completedCount = appointments?.filter(
               (a) => a.status === "completed"
             ).length || 0;
 
+            // Active = has a future scheduled appointment OR has completed sessions
+            const isActive = !!nextAppt || completedCount > 0;
+
             return {
               ...patient,
-              last_appointment: lastAppt?.date,
+              last_appointment: lastCompleted?.date,
               next_appointment: nextAppt?.date,
               total_sessions: completedCount,
-              active: true, // Can be extended with actual active status
+              active: isActive,
             };
           })
         );
