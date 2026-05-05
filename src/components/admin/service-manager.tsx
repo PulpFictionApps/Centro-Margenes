@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Service } from "@/lib/types";
-import { Plus, Pencil, Trash2, Loader2, Clock } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Clock, DollarSign } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +25,8 @@ export function ServiceManager({ initialServices }: ServiceManagerProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [duration, setDuration] = useState(50);
+  const [price, setPrice] = useState<string>("");
+  const [priceNotes, setPriceNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -42,6 +44,8 @@ export function ServiceManager({ initialServices }: ServiceManagerProps) {
     setName("");
     setDescription("");
     setDuration(50);
+    setPrice("");
+    setPriceNotes("");
     setError("");
     setFormOpen(true);
   };
@@ -51,6 +55,8 @@ export function ServiceManager({ initialServices }: ServiceManagerProps) {
     setName(service.name);
     setDescription(service.description);
     setDuration(service.duration_minutes);
+    setPrice(service.price != null ? String(service.price) : "");
+    setPriceNotes(service.price_notes ?? "");
     setError("");
     setFormOpen(true);
   };
@@ -70,6 +76,8 @@ export function ServiceManager({ initialServices }: ServiceManagerProps) {
             name: name.trim(),
             description: description.trim(),
             duration_minutes: duration,
+            price: price !== "" ? Number(price) : null,
+            price_notes: priceNotes.trim() || null,
           })
           .eq("id", editing.id);
         if (err) throw err;
@@ -78,6 +86,8 @@ export function ServiceManager({ initialServices }: ServiceManagerProps) {
           name: name.trim(),
           description: description.trim(),
           duration_minutes: duration,
+          price: price !== "" ? Number(price) : null,
+          price_notes: priceNotes.trim() || null,
         });
         if (err) throw err;
       }
@@ -143,10 +153,24 @@ export function ServiceManager({ initialServices }: ServiceManagerProps) {
                     {service.description}
                   </p>
                 )}
-                <div className="mt-3 flex items-center gap-1.5 text-xs text-neutral-400">
-                  <Clock className="h-3.5 w-3.5" />
-                  {service.duration_minutes} minutos
+                <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-neutral-400">
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5" />
+                    {service.duration_minutes} minutos
+                  </span>
+                  {service.price != null && (
+                    <span className="flex items-center gap-1.5 font-medium text-brand">
+                      <DollarSign className="h-3.5 w-3.5" />
+                      ${service.price.toLocaleString("es-CL")} CLP
+                    </span>
+                  )}
+                  {service.price == null && (
+                    <span className="text-neutral-300 italic">Sin precio definido</span>
+                  )}
                 </div>
+                {service.price_notes && (
+                  <p className="mt-1 text-[11px] text-neutral-400 italic">{service.price_notes}</p>
+                )}
               </div>
               <div className="flex items-center gap-1 ml-4">
                 <button
@@ -223,6 +247,35 @@ export function ServiceManager({ initialServices }: ServiceManagerProps) {
                 onChange={(e) => setDuration(Number(e.target.value))}
                 className="mt-1.5 w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-brand outline-none transition-colors focus:border-brand"
               />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="text-[11px] uppercase tracking-[0.2em] text-neutral-500">
+                  Precio (CLP) — opcional
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step={1000}
+                  placeholder="Ej: 45000"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  className="mt-1.5 w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-brand outline-none transition-colors focus:border-brand"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] uppercase tracking-[0.2em] text-neutral-500">
+                  Nota de precio — opcional
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej: Valor referencial"
+                  value={priceNotes}
+                  onChange={(e) => setPriceNotes(e.target.value)}
+                  className="mt-1.5 w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-brand outline-none transition-colors focus:border-brand"
+                />
+              </div>
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}

@@ -68,6 +68,8 @@ export type Service = {
   name: string;
   description: string;
   duration_minutes: number;
+  price?: number | null;        // en pesos CLP
+  price_notes?: string | null;  // nota sobre el precio
   created_at: string;
 };
 
