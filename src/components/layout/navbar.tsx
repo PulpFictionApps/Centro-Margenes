@@ -78,13 +78,14 @@ export function Navbar() {
 
       {/* Mobile nav */}
       {mobileOpen && (
-        <div className="border-t border-neutral-300/40 px-8 pb-6 pt-4 md:hidden">
-          <nav className="flex flex-col gap-4">
+        <div className="relative border-t border-neutral-300/40 px-8 pb-6 pt-4 md:hidden">
+          <div className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-90" style={{ backgroundImage: "url('/images/background-footer-header.png')" }} />
+          <nav className="relative flex flex-col gap-5">
             {[...leftLinks, ...rightLinks].map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium uppercase tracking-[2px] text-[#EDE6CA] transition-colors hover:text-white"
+                className="text-sm font-semibold uppercase tracking-[2px] text-[#EDE6CA] drop-shadow transition-colors hover:text-white"
                 onClick={() => setMobileOpen(false)}
               >
                 {link.label}
