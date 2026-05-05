@@ -53,43 +53,43 @@ export function DashboardNav({ therapistName }: DashboardNavProps) {
     <>
       <header className="border-b border-neutral-200 bg-[#EDE6CA] overflow-hidden">
         <div className="mx-auto flex h-[4.5rem] max-w-[1200px] items-center justify-between px-4 sm:px-6">
-          {/* Left: logo + desktop nav */}
-          <div className="flex min-w-0 items-center gap-4">
+          {/* Left: logo + desktop nav (icons only — 9 items can't fit with text) */}
+          <div className="flex min-w-0 items-center gap-3">
             <Link href="/dashboard" className="flex-shrink-0">
               <span className="text-sm font-medium uppercase tracking-[3px] text-brand">
                 Dashboard
               </span>
             </Link>
-            {/* Desktop nav — icon only at md, icon+text at lg */}
-            <nav className="hidden items-center gap-0.5 md:flex">
+            <span className="hidden h-4 w-px bg-neutral-300 md:block" />
+            {/* Desktop nav — icon only, always */}
+            <nav className="hidden items-center gap-0 md:flex">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   title={item.label}
                   className={cn(
-                    "flex items-center gap-2 px-2 py-2 text-[11px] uppercase tracking-[0.15em] transition-colors lg:px-3",
+                    "flex items-center justify-center h-9 w-9 transition-colors rounded-sm",
                     isActive(item)
                       ? "text-brand"
-                      : "text-neutral-400 hover:text-neutral-700"
+                      : "text-neutral-400 hover:text-brand hover:bg-[#5b2525]/5"
                   )}
                 >
-                  <item.icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                  <span className="hidden lg:inline">{item.label}</span>
+                  <item.icon className="h-4 w-4" aria-hidden="true" />
                 </Link>
               ))}
             </nav>
           </div>
 
           {/* Right: name + logout (desktop) + hamburger (mobile) */}
-          <div className="flex flex-shrink-0 items-center gap-3">
-            <span className="hidden text-[11px] uppercase tracking-[0.15em] text-neutral-400 xl:inline">
+          <div className="flex flex-shrink-0 items-center gap-2">
+            <span className="hidden max-w-[160px] truncate text-[11px] uppercase tracking-[0.15em] text-neutral-400 lg:inline">
               {therapistName}
             </span>
             <button
               onClick={handleLogout}
               title="Cerrar sesión"
-              className="hidden h-9 w-9 items-center justify-center text-neutral-400 transition-colors hover:text-brand md:flex"
+              className="hidden h-9 w-9 items-center justify-center rounded-sm text-neutral-400 transition-colors hover:text-brand md:flex"
             >
               <LogOut className="h-4 w-4" />
             </button>
