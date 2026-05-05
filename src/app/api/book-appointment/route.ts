@@ -115,8 +115,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Fetch related data for confirmation email (non-blocking)
+    // Include user_id in therapist query so we don't need a separate lookup
     const [therapistRes, serviceRes, branchRes] = await Promise.all([
-      supabase.from("therapists").select("name").eq("id", therapistId).single(),
+      supabaseAdmin.from("therapists").select("name, user_id").eq("id", therapistId).single(),
       serviceId
         ? supabase.from("services").select("name").eq("id", serviceId).single()
         : Promise.resolve({ data: null }),
@@ -141,14 +142,8 @@ export async function POST(request: NextRequest) {
     }).catch((err) => console.error("[Email] fire-and-forget failed:", err));
 
     // Push notification to the therapist (fire-and-forget)
-    const therapistUserId = await (async () => {
-      const { data } = await supabaseAdmin
-        .from("therapists")
-        .select("user_id")
-        .eq("id", therapistId)
-        .maybeSingle();
-      return data?.user_id as string | null;
-    })();
+    const therapistUserId = (therapistRes.data as { user_id?: string } | null)?.user_id ?? null;
+    console.log("[Push] therapistId:", therapistId, "user_id:", therapistUserId);
 
     if (therapistUserId) {
       sendPushToUser(supabaseAdmin, therapistUserId, {
@@ -156,7 +151,9 @@ export async function POST(request: NextRequest) {
         body: `${patient.name.trim()} reservó para el ${date} a las ${time}.`,
         url: "/dashboard/appointments",
         tag: "new-appointment",
-      }).catch((err) => console.error("[Push] new appointment notification failed:", err));
+      }).catch((err) => console.error("[Push] sendPushToUser failed:", err));
+    } else {
+      console.warn("[Push] No user_id found for therapist", therapistId, "— skipping push");
     }
 
     return NextResponse.json({ success: true });
