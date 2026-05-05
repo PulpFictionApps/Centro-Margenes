@@ -1,7 +1,17 @@
 -- ============================================
--- Centro Márgenes — Super Admin + Precio en servicios
+-- Centro Márgenes — Super Admin + Precio en servicios + columnas faltantes
 -- Ejecutar en Supabase → SQL Editor → New Query → Run
 -- ============================================
+
+-- 0. Agregar columnas faltantes a therapists que el código espera
+ALTER TABLE therapists
+  ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT true;
+
+ALTER TABLE therapists
+  ADD COLUMN IF NOT EXISTS offers_online BOOLEAN NOT NULL DEFAULT false;
+
+ALTER TABLE therapists
+  ADD COLUMN IF NOT EXISTS offers_in_person BOOLEAN NOT NULL DEFAULT true;
 
 -- 1. Actualizar constraint de rol para incluir super_admin
 ALTER TABLE therapists

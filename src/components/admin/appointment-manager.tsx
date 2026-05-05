@@ -90,16 +90,20 @@ export function AppointmentManager({ therapists }: AppointmentManagerProps) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-playfair text-3xl font-normal text-brand">
-          Citas
-        </h1>
-        <p className="mt-2 text-sm text-neutral-500">
-          Visualiza y administra todas las citas del centro.
-        </p>
+      {/* ── Page header ── */}
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="font-playfair text-3xl font-normal text-brand">
+            Citas
+          </h1>
+          <p className="mt-1 text-sm text-neutral-500">
+            {loading ? "Cargando..." : `${appointments.length} resultado${appointments.length !== 1 ? "s" : ""}`}
+            {(filterDate || filterTherapist || filterStatus) && " · filtros activos"}
+          </p>
+        </div>
       </div>
 
-      {/* Filters */}
+      {/* ── Filters ── */}
       <div className="border border-neutral-200 bg-white p-4 sm:p-5">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>

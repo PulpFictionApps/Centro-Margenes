@@ -95,10 +95,13 @@ export async function POST(request: NextRequest) {
   });
 
   if (insertErr) {
-    return NextResponse.json(
-      { error: insertErr.message },
-      { status: 500 }
-    );
+    // Roll back: delete the auth user so it doesn't become orphaned
+    await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+    // Give a clear error message for missing columns
+    const msg = insertErr.message.includes("column")
+      ? `Error de esquema en la BD: ${insertErr.message}. Ejecuta supabase/super-admin-and-prices.sql en el SQL Editor de Supabase.`
+      : insertErr.message;
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });
