@@ -224,3 +224,61 @@ export async function sendAppointmentReminder(
 
   return { error };
 }
+
+// ─── Evaluation request email ──────────────────────────────────────
+export interface EvaluationEmailData {
+  patientName: string;
+  patientEmail: string;
+  therapistName: string;
+  date: string;
+  evaluationToken: string;
+}
+
+function evaluationRequestHtml(data: EvaluationEmailData): string {
+  const dateFormatted = formatDateES(data.date);
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://centromargenes.com";
+  const evaluationUrl = `${baseUrl}/evaluar/${data.evaluationToken}`;
+
+  const body = `
+    <h2 style="margin:0 0 8px;font-size:20px;color:#5b2525;font-weight:400;">
+      ¿Cómo fue tu experiencia?
+    </h2>
+    <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.6;">
+      Hola <strong>${data.patientName}</strong>, esperamos que tu sesión con <strong>${data.therapistName}</strong> 
+      del <strong>${dateFormatted}</strong> haya sido de tu agrado.
+    </p>
+    <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.6;">
+      Tu opinión nos ayuda a mejorar nuestro servicio. ¿Podrías tomar un momento para evaluar tu experiencia?
+    </p>
+    <div style="text-align:center;margin:32px 0;">
+      <a href="${evaluationUrl}" style="display:inline-block;padding:14px 32px;background-color:#5b2525;color:#EDE6CA;text-decoration:none;font-size:14px;letter-spacing:0.05em;text-transform:uppercase;border-radius:4px;">
+        Evaluar mi sesión
+      </a>
+    </div>
+    <p style="margin:24px 0 0;font-size:13px;color:#999;line-height:1.6;text-align:center;">
+      Si el botón no funciona, copia y pega este enlace en tu navegador:<br/>
+      <a href="${evaluationUrl}" style="color:#5b2525;">${evaluationUrl}</a>
+    </p>
+    <p style="margin:24px 0 0;font-size:14px;color:#777;line-height:1.6;">
+      Puedes evaluar de forma anónima si lo prefieres. ¡Gracias por confiar en nosotros!
+    </p>`;
+
+  return emailLayout("Evalúa tu experiencia - Centro Márgenes", body);
+}
+
+export async function sendEvaluationRequest(data: EvaluationEmailData) {
+  const html = evaluationRequestHtml(data);
+
+  const { error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to: data.patientEmail,
+    subject: `¿Cómo fue tu sesión? — Centro Márgenes`,
+    html,
+  });
+
+  if (error) {
+    console.error("[Email] Evaluation request send failed:", error);
+  }
+
+  return { error };
+}

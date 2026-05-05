@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
   if (!therapistId || !serviceId || !date) {
     return NextResponse.json(
-      { error: "Missing required params: therapist_id, service_id, date" },
+      { error: "Parámetros requeridos: therapist_id, service_id, date" },
       { status: 400 }
     );
   }
@@ -18,14 +18,14 @@ export async function GET(request: NextRequest) {
   // Validate date format (YYYY-MM-DD)
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return NextResponse.json(
-      { error: "date must be in YYYY-MM-DD format" },
+      { error: "La fecha debe tener el formato AAAA-MM-DD" },
       { status: 400 }
     );
   }
 
   const dateObj = new Date(date + "T12:00:00");
   if (isNaN(dateObj.getTime())) {
-    return NextResponse.json({ error: "Invalid date" }, { status: 400 });
+    return NextResponse.json({ error: "Fecha inválida" }, { status: 400 });
   }
 
   const dayOfWeek = dateObj.getDay(); // 0 = Sunday, 6 = Saturday
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
 
   if (availabilityRes.error) {
     return NextResponse.json(
-      { error: "Failed to fetch availability" },
+      { error: "Error al obtener disponibilidad" },
       { status: 500 }
     );
   }

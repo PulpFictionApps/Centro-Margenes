@@ -3,13 +3,17 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { LayoutDashboard, Calendar, User, Clock, Briefcase, LogOut } from "lucide-react";
+import { LayoutDashboard, Calendar, User, Clock, Briefcase, LogOut, FileText, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/dashboard", label: "Inicio", icon: LayoutDashboard, exact: true },
   { href: "/dashboard/appointments", label: "Citas", icon: Calendar, exact: false },
+  { href: "/dashboard/calendar", label: "Calendario", icon: Calendar, exact: false },
+  { href: "/dashboard/patients", label: "Pacientes", icon: User, exact: false },
+  { href: "/dashboard/clinical-records", label: "Fichas", icon: FileText, exact: false },
   { href: "/dashboard/availability", label: "Disponibilidad", icon: Clock, exact: false },
+  { href: "/dashboard/evaluations", label: "Evaluaciones", icon: Star, exact: false },
   { href: "/dashboard/services", label: "Servicios", icon: Briefcase, exact: false },
   { href: "/dashboard/profile", label: "Mi perfil", icon: User, exact: false },
 ];
@@ -64,8 +68,7 @@ export function DashboardNav({ therapistName }: DashboardNavProps) {
           <button
             onClick={handleLogout}
             title="Cerrar sesión"
-            className="flex h-9 w-9 items-center justify-center text-neutral-400 transition-colors hover:text-brand"
-          >
+            className="flex h-9 w-9 items-center justify-center text-neutral-400 transition-colors hover:text-brand">
             <LogOut className="h-4 w-4" />
           </button>
         </div>

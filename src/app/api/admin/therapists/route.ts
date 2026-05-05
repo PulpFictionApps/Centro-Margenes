@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     .eq("user_id", user.id)
     .single();
 
-  if (!admin || admin.role !== "admin") {
+  if (!admin || (admin.role !== "admin" && admin.role !== "super_admin")) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 

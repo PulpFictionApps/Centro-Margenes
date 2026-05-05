@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { format, parseISO, isAfter, isBefore } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Appointment } from "@/lib/types";
-import { X, CalendarClock, CheckCircle2, UserX } from "lucide-react";
+import { X, CalendarClock, CheckCircle2, UserX, CreditCard } from "lucide-react";
 
 interface AppointmentsListProps {
   therapistId?: string;
@@ -15,6 +15,7 @@ type AppointmentWithRelations = Appointment & {
   treatments?: { name: string } | null;
   patients?: { name: string; email: string; phone: string } | null;
   branches?: { name: string } | null;
+  evaluations?: { id: string }[];
 };
 
 const statusLabels: Record<string, string> = {
@@ -35,6 +36,7 @@ export function AppointmentsList({ therapistId }: AppointmentsListProps) {
   const [appointments, setAppointments] = useState<AppointmentWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
+  const [error, setError] = useState<string | null>(null);
 
   const [rescheduleId, setRescheduleId] = useState<string | null>(null);
   const [rescheduleDate, setRescheduleDate] = useState("");
@@ -50,7 +52,7 @@ export function AppointmentsList({ therapistId }: AppointmentsListProps) {
       const supabase = createClient();
       const { data } = await supabase
         .from("appointments")
-        .select("*, treatments(name), patients(name, email, phone), branches(name)")
+        .select("*, treatments(name), patients(name, email, phone), branches(name), evaluations(id)")
         .eq("therapist_id", therapistId)
         .order("date", { ascending: true })
         .order("time", { ascending: true });
@@ -69,22 +71,87 @@ export function AppointmentsList({ therapistId }: AppointmentsListProps) {
   }, [therapistId]);
 
   const handleStatusChange = async (id: string, status: string) => {
-    const supabase = createClient();
-    await supabase.from("appointments").update({ status }).eq("id", id);
+    setError(null);
+    const response = await fetch(`/api/appointments/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      setError(data.error || "No se pudo actualizar el estado de la cita");
+      return;
+    }
+
+    fetchAppointments();
+  };
+
+  const handlePaymentStatusChange = async (
+    id: string,
+    payment_status: "pending" | "paid" | "refunded"
+  ) => {
+    setError(null);
+    const response = await fetch(`/api/appointments/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ payment_status }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      setError(data.error || "No se pudo actualizar el estado de pago");
+      return;
+    }
+
     fetchAppointments();
   };
 
   const handleReschedule = async (id: string) => {
     if (!rescheduleDate || !rescheduleTime) return;
-    const supabase = createClient();
-    await supabase
-      .from("appointments")
-      .update({ date: rescheduleDate, time: rescheduleTime })
-      .eq("id", id);
+    setError(null);
+    const response = await fetch(`/api/appointments/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: rescheduleDate, time: rescheduleTime }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      setError(data.error || "No se pudo reprogramar la cita");
+      return;
+    }
+
     setRescheduleId(null);
     setRescheduleDate("");
     setRescheduleTime("");
     fetchAppointments();
+  };
+
+  const getPaymentLabel = (paymentStatus: string) => {
+    switch (paymentStatus) {
+      case "paid":
+        return "Pagada";
+      case "pending":
+        return "Pendiente";
+      case "refunded":
+        return "Reembolsada";
+      default:
+        return paymentStatus;
+    }
+  };
+
+  const getPaymentDot = (paymentStatus: string) => {
+    switch (paymentStatus) {
+      case "paid":
+        return "bg-green-500";
+      case "pending":
+        return "bg-amber-400";
+      case "refunded":
+        return "bg-purple-400";
+      default:
+        return "bg-neutral-300";
+    }
   };
 
   const now = new Date();
@@ -134,6 +201,12 @@ export function AppointmentsList({ therapistId }: AppointmentsListProps) {
                 {statusLabels[appointment.status]}
               </span>
             </span>
+            <span className="flex items-center gap-2">
+              <span className={`inline-block h-2 w-2 ${getPaymentDot(appointment.payment_status)}`} />
+              <span className="text-[11px] uppercase tracking-[0.2em] text-neutral-500">
+                {getPaymentLabel(appointment.payment_status)}
+              </span>
+            </span>
             {appointment.branches?.name && (
               <span className="text-[11px] uppercase tracking-[0.15em] text-neutral-400">
                 · {appointment.branches.name}
@@ -166,42 +239,85 @@ export function AppointmentsList({ therapistId }: AppointmentsListProps) {
         </div>
 
         {/* Actions */}
-        {appointment.status === "scheduled" && (
-          <div className="flex flex-wrap gap-3 shrink-0">
-            <button
-              onClick={() => handleStatusChange(appointment.id, "completed")}
+        <div className="flex flex-wrap gap-3 shrink-0">
+          {appointment.status === "scheduled" && (
+            <>
+              <button
+                onClick={() => handleStatusChange(appointment.id, "completed")}
+                className="flex items-center gap-1.5 border-y border-brand px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-brand transition-colors hover:bg-brand hover:text-white"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Completar
+              </button>
+              <button
+                onClick={() => {
+                  setRescheduleId(appointment.id);
+                  setRescheduleDate(appointment.date);
+                  setRescheduleTime(appointment.time);
+                }}
+                className="flex items-center gap-1.5 border-y border-neutral-300 px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-neutral-500 transition-colors hover:border-brand hover:text-brand"
+              >
+                <CalendarClock className="h-3.5 w-3.5" />
+                Reprogramar
+              </button>
+              <button
+                onClick={() => handleStatusChange(appointment.id, "cancelled")}
+                className="flex items-center gap-1.5 border-y border-neutral-300 px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-neutral-500 transition-colors hover:border-red-400 hover:text-red-600"
+              >
+                <X className="h-3.5 w-3.5" />
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleStatusChange(appointment.id, "no_show")}
+                className="flex items-center gap-1.5 border-y border-neutral-300 px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-neutral-500 transition-colors hover:border-amber-400 hover:text-amber-600"
+              >
+                <UserX className="h-3.5 w-3.5" />
+                No asistió
+              </button>
+            </>
+          )}
+
+          {appointment.status === "completed" && appointment.cancellation_token && !appointment.evaluations?.length && (
+            <a
+              href={`/evaluar/${appointment.cancellation_token}`}
+              target="_blank"
+              rel="noreferrer"
               className="flex items-center gap-1.5 border-y border-brand px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-brand transition-colors hover:bg-brand hover:text-white"
             >
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              Completar
-            </button>
+              Evaluar sesión
+            </a>
+          )}
+
+          {appointment.payment_status !== "paid" && (
             <button
-              onClick={() => {
-                setRescheduleId(appointment.id);
-                setRescheduleDate(appointment.date);
-                setRescheduleTime(appointment.time);
-              }}
-              className="flex items-center gap-1.5 border-y border-neutral-300 px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-neutral-500 transition-colors hover:border-brand hover:text-brand"
+              onClick={() => handlePaymentStatusChange(appointment.id, "paid")}
+              className="flex items-center gap-1.5 border-y border-green-300 px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-green-700 transition-colors hover:bg-green-600 hover:text-white"
             >
-              <CalendarClock className="h-3.5 w-3.5" />
-              Reprogramar
+              <CreditCard className="h-3.5 w-3.5" />
+              Marcar pagada
             </button>
+          )}
+
+          {appointment.payment_status !== "pending" && (
             <button
-              onClick={() => handleStatusChange(appointment.id, "cancelled")}
-              className="flex items-center gap-1.5 border-y border-neutral-300 px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-neutral-500 transition-colors hover:border-red-400 hover:text-red-600"
+              onClick={() => handlePaymentStatusChange(appointment.id, "pending")}
+              className="flex items-center gap-1.5 border-y border-amber-300 px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-amber-700 transition-colors hover:bg-amber-500 hover:text-white"
             >
-              <X className="h-3.5 w-3.5" />
-              Cancelar
+              <CreditCard className="h-3.5 w-3.5" />
+              Marcar pendiente
             </button>
+          )}
+
+          {appointment.status === "cancelled" && appointment.payment_status !== "refunded" && (
             <button
-              onClick={() => handleStatusChange(appointment.id, "no_show")}
-              className="flex items-center gap-1.5 border-y border-neutral-300 px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-neutral-500 transition-colors hover:border-amber-400 hover:text-amber-600"
+              onClick={() => handlePaymentStatusChange(appointment.id, "refunded")}
+              className="flex items-center gap-1.5 border-y border-purple-300 px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-purple-700 transition-colors hover:bg-purple-600 hover:text-white"
             >
-              <UserX className="h-3.5 w-3.5" />
-              No asistió
+              <CreditCard className="h-3.5 w-3.5" />
+              Marcar reembolso
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Reschedule inline form */}
         {rescheduleId === appointment.id && (
@@ -247,6 +363,12 @@ export function AppointmentsList({ therapistId }: AppointmentsListProps) {
 
   return (
     <div>
+      {error && (
+        <div className="mb-4 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       {/* Tab bar */}
       <div className="flex gap-6 border-b border-neutral-200">
         <button

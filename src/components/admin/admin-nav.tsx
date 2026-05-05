@@ -10,6 +10,7 @@ import {
   CalendarDays,
   LogOut,
   ArrowLeft,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +19,7 @@ const navItems = [
   { href: "/admin/therapists", label: "Terapeutas", icon: Users, exact: false },
   { href: "/admin/services", label: "Servicios", icon: Briefcase, exact: false },
   { href: "/admin/appointments", label: "Citas", icon: CalendarDays, exact: false },
+  { href: "/admin/team", label: "Equipo", icon: Shield, exact: false },
 ];
 
 interface AdminNavProps {
