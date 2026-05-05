@@ -33,11 +33,22 @@ export default function HomePage() {
       </section>
 
       {/* Services / Offerings */}
-      <section className="bg-transparent">
+      <section className="relative bg-transparent">
+
         {/* ──── Top: Offerings ──── */}
-        <div className="mx-auto max-w-[1200px] px-6 pt-24 lg:pt-32">
+        <div className="relative mx-auto max-w-[1200px] px-6 pt-24 lg:pt-32">
+          {/* Decorative illustration */}
+          <div className="pointer-events-none absolute bottom-0 z-20 hidden lg:block" style={{ opacity: 0.4, right: "calc(max(-250px, -1 * (100vw - 1200px) / 2 - 80px))" }}>
+            <Image
+              src="/images/Sitial2.png"
+              alt=""
+              width={520}
+              height={700}
+              className="object-contain"
+            />
+          </div>
+
           <div className="relative">
-            {/* Row: image + text side by side */}
             <div className="flex flex-col lg:flex-row lg:gap-12">
               {/* Left image */}
               <div className="relative aspect-[3/4] w-full max-w-[500px] flex-shrink-0 overflow-hidden">
@@ -74,7 +85,18 @@ export default function HomePage() {
         </div>
 
         {/* ──── Navigation Links ──── */}
-        <div className="mx-auto max-w-[1200px] px-6 pb-24 pt-16 lg:pb-32">
+        <div className="relative mx-auto max-w-[1200px] px-6 pb-24 pt-16 lg:pb-32">
+          {/* Decorative illustration */}
+          <div className="pointer-events-none absolute bottom-0 left-0 z-20 hidden lg:block" style={{ opacity: 0.4, left: "calc(max(-180px, -1 * (100vw - 1200px) / 2 - 80px))" }}>
+            <Image
+              src="/images/Libros2.png"
+              alt=""
+              width={520}
+              height={700}
+              className="object-contain"
+            />
+          </div>
+
           <div className="flex flex-col lg:flex-row lg:items-center lg:gap-0">
             {/* Left: links */}
             <div className="flex-1">
@@ -123,9 +145,9 @@ export default function HomePage() {
             </div>
 
             {/* Right: image */}
-            <div className="relative mt-10 aspect-[3/4] w-full max-w-[350px] flex-shrink-0 overflow-hidden lg:ml-16 lg:mt-0">
+            <div className="relative mt-10 aspect-[3/4] w-full max-w-[500px] flex-shrink-0 overflow-hidden lg:ml-16 lg:mt-0">
               <Image
-                src="/images/seccion3-2.jpg"
+                src="/images/Preguntas-frecuentes-2.png"
                 alt="Espacio terapéutico"
                 fill
                 className="object-cover"
@@ -215,31 +237,27 @@ export default function HomePage() {
                 </p>
               </div>
 
-              {/* Item 4 */}
-              <div className="border-b border-neutral-400/50 pb-10 pt-10">
-                <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
-                  Lado a Lado (Parejas)
-                </h4>
-                <p className="mt-1 font-playfair text-sm italic text-brand/70">
-                  Terapia de pareja
-                </p>
-                <p className="mt-4 max-w-[700px] text-sm leading-[1.8] text-neutral-600">
-                  Apoyo relacional para parejas que buscan conexión y claridad. Un proceso donde ambos pueden ser escuchados y trabajar juntos las dinámicas que generan malestar en el vínculo.
-                </p>
-                <p className="mt-4 font-playfair text-sm italic text-brand/70">
-                  Próximamente
-                </p>
-              </div>
             </div>
 
-            {/* Right: tall image */}
-            <div className="relative mt-10 aspect-[3/4] w-full max-w-[400px] flex-shrink-0 lg:mt-0">
-              <Image
-                src="/images/Preguntas-frecuentes-marco.png"
-                alt="Centro Márgenes"
-                fill
-                className="object-contain"
-              />
+            {/* Right: tall image with decorative illustrations */}
+            <div className="relative mt-10 w-full max-w-[500px] flex-shrink-0 lg:mt-0" style={{ aspectRatio: "3/4" }}>
+              {/* Reloj — left side, behind image */}
+              <div className="pointer-events-none absolute -left-28 top-8 z-0" style={{ opacity: 0.6, transform: "rotate(-15deg)" }}>
+                <Image src="/images/Reloj2.png" alt="" width={220} height={280} className="object-contain" />
+              </div>
+              {/* Llave — right side, behind image */}
+              <div className="pointer-events-none absolute -right-36 bottom-8 z-0" style={{ opacity: 0.6 }}>
+                <Image src="/images/Llave2.png" alt="" width={280} height={280} className="object-contain" />
+              </div>
+              {/* Main image — z-10 so illustrations go behind */}
+              <div className="relative z-10 h-full w-full">
+                <Image
+                  src="/images/Preguntas-frecuentes-marco.png"
+                  alt="Centro Márgenes"
+                  fill
+                  className="object-contain"
+                />
+              </div>
             </div>
           </div>
         </div>

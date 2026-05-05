@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export function HeroSection() {
   return (
-    <section className="relative -mt-[5.9rem] w-full overflow-hidden" style={{ height: "87vh" }}>
+    <section className="relative -mt-[5.9rem] w-full overflow-hidden" style={{ height: "100dvh" }}>
       <Image
         src="/images/Header.png"
         alt="Centro Márgenes"
