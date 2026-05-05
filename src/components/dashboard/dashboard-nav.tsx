@@ -106,7 +106,7 @@ export function DashboardNav({ therapistName }: DashboardNavProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex min-w-[3.5rem] flex-col items-center justify-center gap-1 px-1 py-2.5 transition-colors",
+                "flex min-w-[3.5rem] flex-col items-center justify-center gap-1 px-1 py-4 transition-colors",
                 isActive(item) ? "text-brand" : "text-neutral-400 hover:text-brand"
               )}
             >
@@ -116,7 +116,7 @@ export function DashboardNav({ therapistName }: DashboardNavProps) {
           ))}
           <button
             onClick={handleLogout}
-            className="flex min-w-[3.5rem] flex-col items-center justify-center gap-1 px-1 py-2.5 text-neutral-400 transition-colors hover:text-brand"
+            className="flex min-w-[3.5rem] flex-col items-center justify-center gap-1 px-1 py-4 text-neutral-400 transition-colors hover:text-brand"
           >
             <LogOut className="h-5 w-5 flex-shrink-0" />
             <span className="text-[8px] uppercase tracking-[0.03em] leading-none">Salir</span>

@@ -29,7 +29,7 @@ export default async function AdminLayout({
   return (
     <div className="flex min-h-screen flex-col bg-[#EDE6CA]">
       <AdminNav adminName={therapist.name ?? user.email ?? "Admin"} />
-      <div className="flex-1 px-4 py-6 pb-24 sm:px-6 sm:py-10 md:pb-10">
+      <div className="flex-1 px-4 py-6 pb-32 sm:px-6 sm:py-10 md:pb-10">
         <div className="mx-auto max-w-[1200px]">{children}</div>
       </div>
     </div>
