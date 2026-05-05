@@ -110,7 +110,7 @@ export function DashboardNav({ therapistName }: DashboardNavProps) {
                 isActive(item) ? "text-brand" : "text-neutral-400 hover:text-brand"
               )}
             >
-              <item.icon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
+              <item.icon className="h-8 w-8 flex-shrink-0" aria-hidden="true" />
               <span className="text-[8px] uppercase tracking-[0.03em] leading-none whitespace-nowrap">{item.shortLabel}</span>
             </Link>
           ))}
@@ -118,7 +118,7 @@ export function DashboardNav({ therapistName }: DashboardNavProps) {
             onClick={handleLogout}
             className="flex min-w-[4.5rem] flex-col items-center justify-center gap-1 px-1 py-6 text-neutral-400 transition-colors hover:text-brand"
           >
-            <LogOut className="h-5 w-5 flex-shrink-0" />
+            <LogOut className="h-8 w-8 flex-shrink-0" />
             <span className="text-[8px] uppercase tracking-[0.03em] leading-none">Salir</span>
           </button>
         </div>
