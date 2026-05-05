@@ -56,7 +56,7 @@ export default async function AdminPage() {
   const scheduledAppointments = scheduledRes.count ?? 0;
   const todayAppointments = todayRes.count ?? 0;
 
-  const recentAppointments = (recentRes.data ?? []) as Array<{
+  const recentAppointments = (recentRes.data ?? []) as unknown as Array<{
     id: string;
     date: string;
     time: string;
