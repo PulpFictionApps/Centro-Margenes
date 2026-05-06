@@ -34,9 +34,8 @@ export async function GET(request: NextRequest) {
       .from("patients")
       .select("*", { count: "exact" });
 
-    // Filter by therapist unless admin
-    if (therapist.role !== "admin" && therapist.role !== "super_admin") {
-      // Get patient IDs that have at least one appointment with this therapist
+    // Always filter patients by therapist — each professional sees only their own
+    {
       const { data: apptRows } = await supabase
         .from("appointments")
         .select("patient_id")
