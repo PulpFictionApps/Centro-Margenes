@@ -320,7 +320,7 @@ export function BookingWizardModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg sm:max-w-2xl overflow-hidden flex flex-col bg-[#EDE6CA] border-neutral-300/40">
         <DialogHeader className="shrink-0 pb-2">
-          <DialogTitle className="font-playfair text-2xl font-normal text-brand">Reservar una cita</DialogTitle>
+          <DialogTitle className="font-playfair text-2xl font-normal text-brand">RESERVAR UNA CITA</DialogTitle>
           <DialogDescription className="text-[11px] uppercase tracking-[0.2em] text-neutral-500">
             Paso {step} de 6 — {STEPS[step - 1].label}
           </DialogDescription>

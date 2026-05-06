@@ -149,16 +149,15 @@ export default function ReservarPage() {
         {/* Left content */}
         <div className="relative z-10 flex w-full flex-col items-center bg-[#EDE6CA] px-6 py-24 text-center lg:w-1/2 lg:items-start lg:py-32 lg:pl-[8%] lg:pr-16 lg:text-left">
           <h3 className="text-[11px] font-normal uppercase tracking-[0.25em] text-neutral-500">
-            Tu bienestar comienza aquí
+            Agenda tu primera consulta
           </h3>
           <h1 className="mt-6 font-playfair text-5xl font-normal leading-[1.1] text-brand lg:text-7xl">
-            Reservar
+            RESERVAR
             <br />
-            una cita
+            UNA CITA
           </h1>
           <p className="mt-8 max-w-[420px] text-sm leading-[1.9] text-neutral-500">
-            Agenda tu sesión de terapia en solo unos minutos. Elige al terapeuta,
-            la modalidad y el horario que mejor se adapten a ti.
+            Agenda tu sesión de terapia en pocos minutos. Elige al formato y el horario que mejor se adapten a ti. Nos pondremos en contacto contigo a la brevedad.
           </p>
           <div className="mt-10">
             <button
@@ -173,10 +172,11 @@ export default function ReservarPage() {
         {/* Right image */}
         <div className="absolute inset-y-0 right-0 hidden w-1/2 lg:block">
           <Image
-            src="/images/seccion3-2.jpg"
+            src="/images/ImagenReserva.jpg"
             alt="Centro Márgenes espacio"
             fill
-            className="object-cover"
+            className="object-cover object-left"
+            sizes="50vw"
           />
         </div>
       </section>
@@ -193,13 +193,14 @@ export default function ReservarPage() {
             </h2>
           </div>
 
-          <div className="mt-16 grid grid-cols-1 gap-0 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="mt-16 grid grid-cols-1 gap-0 sm:grid-cols-2 lg:grid-cols-6">
             {[
               { step: "01", title: "Modalidad", desc: "Elige entre sesión online o presencial" },
-              { step: "02", title: "Tratamiento", desc: "Selecciona el tipo de terapia" },
-              { step: "03", title: "Terapeuta", desc: "Escoge al profesional ideal" },
-              { step: "04", title: "Fecha y hora", desc: "Encuentra el horario perfecto" },
-              { step: "05", title: "Tus datos", desc: "Confirma tu información" },
+              { step: "02", title: "Tratamiento", desc: "Selecciona el tipo de consulta" },
+              { step: "03", title: "Terapeuta", desc: "Escoge al profesional" },
+              { step: "04", title: "Fecha y hora", desc: "Escoge tu horario" },
+              { step: "05", title: "Condiciones", desc: "Lee y confirma las condiciones de atencion" },
+              { step: "06", title: "Tus datos", desc: "Confirma tu información" },
             ].map((item) => (
               <div
                 key={item.step}
