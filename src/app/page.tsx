@@ -19,7 +19,7 @@ export default function HomePage() {
           <p className="mt-8 text-sm font-semibold italic leading-relaxed text-white/90">En los márgenes se reescriben las historias</p>
 
           <p className="mt-6 text-sm leading-[1.8] text-white/80">
-            Centro Márgenes es un espacio de atención clínica y de formación dedicado a la escucha y al trabajo con la singularidad de cada sujeto. Ofrecemos atención psicoanalítica y propuestas formativas que abren un lugar para pensar, cuestionar y crear nuevas lecturas.   La terapia psicoanalítica es un proceso de exploración del sujeto mediante la palabra, donde el paciente habla libremente y el analista escucha, interpreta y acompaña el proceso de producción de sentido. El psicoanálisis no es solo un conjunto de técnicas, sino una práctica interpretativa y ética basada en la escucha del inconsciente. Aquí cada proceso es singular y se construye respetando el ritmo y la historia de cada persona.
+            Centro Márgenes es un espacio de atención clínica y de formación dedicado a la escucha y al trabajo con la singularidad de cada sujeto. Ofrecemos atención psicoanalítica y propuestas formativas que abren un lugar para pensar, cuestionar y crear nuevas lecturas. La terapia psicoanalítica es un proceso de exploración del sujeto mediante la palabra, donde el paciente habla libremente y el analista escucha, interpreta y acompaña el proceso de producción de sentido. El psicoanálisis no es solo un conjunto de técnicas, sino una práctica interpretativa y ética basada en la escucha del inconsciente. Aquí cada proceso es singular y se construye respetando el ritmo y la historia de cada persona. 
           </p>
           <div className="mt-10">
             <Link
@@ -66,11 +66,8 @@ export default function HomePage() {
                   Escuchar, decir y elaborar lo que produce malestar.
                 </h3>
                 <p className="mt-8 max-w-[420px] text-sm leading-[1.9] text-neutral-500">
-                  La terapia es un espacio de encuentro y escucha donde aquello que genera malestar puede comenzar a ser hablado y pensado con mayor profundidad. 
-                  A través del diálogo y la experiencia transferencial, 
-                  el proceso permite comprender experiencias que se repiten, 
-                  dar un lugar a emociones complejas y abrir nuevas formas de relacionarse con uno mismo y con los demás.<br></br><br></br>
-                   Pensamos el proceso terapéutico como un lugar donde hablar libremente y explorar lo que aparece. Sin juicios ni respuestas predeterminadas, permitiendo que cada persona encuentre su propio modo de elaborar aquello que la atraviesa. En ese recorrido, el proceso terapéutico puede favorecer una relación más consciente con lo que se siente, ampliar la capacidad de reflexión y habilitar nuevas formas de estar en el mundo.
+                  La terapia es un espacio de encuentro y escucha donde aquello que genera malestar puede comenzar a ser hablado y pensado con mayor profundidad. A través del diálogo y la experiencia transferencial, el proceso permite comprender experiencias que se repiten, dar un lugar a emociones complejas y abrir nuevas formas de relacionarse con uno mismo y con los demás. <br></br><br></br>
+                  Pensamos el proceso terapéutico como un lugar donde hablar libremente y explorar lo que aparece. Sin juicios ni respuestas predeterminadas, permitiendo que cada persona encuentre su propio modo de elaborar aquello que la atraviesa. En ese recorrido, el proceso terapéutico puede favorecer una relación más consciente con lo que se siente, ampliar la capacidad de reflexión y habilitar nuevas formas de estar en el mundo. 
                 </p>
               </div>
             </div>

@@ -1,7 +1,7 @@
 export default function BlogPage() {
   return (
     <>
-      <section className="relative flex min-h-[60vh] items-center justify-center overflow-hidden bg-[#EDE6CA]">
+      <section className="relative flex min-h-[60vh] items-center justify-center overflow-hidden bg-transparent">
         <div className="relative z-10 mx-auto max-w-[800px] px-6 py-24 text-center lg:py-32">
           <h3 className="text-[11px] font-normal uppercase tracking-[0.25em] text-neutral-500">
             Artículos y reflexiones

@@ -89,7 +89,7 @@ export default async function TherapistProfilePage({
   return (
     <>
       {/* Hero */}
-      <section className="bg-[#EDE6CA] px-6 py-24 lg:py-32">
+      <section className="bg-transparent px-6 py-24 lg:py-32">
         <div className="mx-auto max-w-[1200px]">
           <div className="flex flex-col items-center gap-10 lg:flex-row lg:items-start lg:gap-16">
             {/* Photo */}

@@ -83,7 +83,7 @@ export default async function TerapeutasPage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-[#EDE6CA] px-6 py-24 lg:py-32">
+      <section className="bg-transparent px-6 py-24 lg:py-32">
         <div className="mx-auto max-w-[800px] text-center">
           <h3 className="text-[11px] font-normal uppercase tracking-[0.25em] text-neutral-500">
             Nuestro equipo

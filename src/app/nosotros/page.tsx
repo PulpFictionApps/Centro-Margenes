@@ -5,7 +5,7 @@ export default function NosotrosPage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative flex min-h-[60vh] items-center justify-center overflow-hidden bg-[#EDE6CA]">
+      <section className="relative flex min-h-[60vh] items-center justify-center overflow-hidden bg-transparent">
         <div className="relative z-10 mx-auto max-w-[800px] px-6 py-24 text-center lg:py-32">
           <h3 className="text-[11px] font-normal uppercase tracking-[0.25em] text-neutral-500">
             Quiénes somos
@@ -53,7 +53,7 @@ export default function NosotrosPage() {
       </section>
 
       {/* Values */}
-      <section className="bg-[#EDE6CA] px-6 py-20 lg:py-28">
+      <section className="bg-transparent px-6 py-20 lg:py-28">
         <div className="mx-auto max-w-[1200px]">
           <div className="text-center">
             <h3 className="text-[11px] font-normal uppercase tracking-[0.25em] text-neutral-500">
