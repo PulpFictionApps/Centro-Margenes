@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import type { Service } from "@/lib/types";
 import { Plus, Pencil, Trash2, Loader2, Clock, DollarSign } from "lucide-react";
 import {
@@ -31,12 +30,11 @@ export function ServiceManager({ initialServices }: ServiceManagerProps) {
   const [error, setError] = useState("");
 
   const refresh = async () => {
-    const supabase = createClient();
-    const { data } = await supabase
-      .from("services")
-      .select("*")
-      .order("name");
-    if (data) setServices(data);
+    const res = await fetch("/api/admin/services");
+    if (res.ok) {
+      const data = await res.json();
+      setServices(data);
+    }
   };
 
   const openCreate = () => {
@@ -67,29 +65,24 @@ export function ServiceManager({ initialServices }: ServiceManagerProps) {
     setError("");
 
     try {
-      const supabase = createClient();
+      const payload = {
+        id: editing?.id,
+        name: name.trim(),
+        description: description.trim(),
+        duration_minutes: duration,
+        price: price !== "" ? Number(price) : null,
+        price_notes: priceNotes.trim() || null,
+      };
 
-      if (editing) {
-        const { error: err } = await supabase
-          .from("services")
-          .update({
-            name: name.trim(),
-            description: description.trim(),
-            duration_minutes: duration,
-            price: price !== "" ? Number(price) : null,
-            price_notes: priceNotes.trim() || null,
-          })
-          .eq("id", editing.id);
-        if (err) throw err;
-      } else {
-        const { error: err } = await supabase.from("services").insert({
-          name: name.trim(),
-          description: description.trim(),
-          duration_minutes: duration,
-          price: price !== "" ? Number(price) : null,
-          price_notes: priceNotes.trim() || null,
-        });
-        if (err) throw err;
+      const res = await fetch("/api/admin/services", {
+        method: editing ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error ?? "Error al guardar");
       }
 
       await refresh();
@@ -107,8 +100,7 @@ export function ServiceManager({ initialServices }: ServiceManagerProps) {
 
     setDeleting(serviceId);
     try {
-      const supabase = createClient();
-      await supabase.from("services").delete().eq("id", serviceId);
+      await fetch(`/api/admin/services?id=${serviceId}`, { method: "DELETE" });
       await refresh();
     } finally {
       setDeleting(null);
