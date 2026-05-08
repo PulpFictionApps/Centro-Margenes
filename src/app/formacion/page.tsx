@@ -1,17 +1,13 @@
 export default function FormacionPage() {
   return (
     <>
-      <section className="relative flex min-h-[60vh] items-center justify-center overflow-hidden bg-transparent">
-        <div className="relative z-10 mx-auto max-w-[800px] px-6 py-24 text-center lg:py-32">
-          <h3 className="text-[11px] font-normal uppercase tracking-[0.25em] text-neutral-500">
-            Cursos y talleres
-          </h3>
-          <h1 className="mt-6 font-playfair text-5xl font-normal leading-[1.1] text-brand lg:text-7xl">
-            Formación
+      <section className="relative overflow-hidden bg-transparent">
+        <div className="mx-auto max-w-[800px] px-6 py-24 text-center lg:py-32">
+          <h1 className="mb-8 font-playfair text-5xl font-normal leading-[1.1] text-brand lg:text-7xl">
+            FORMACIÓN
           </h1>
-          <p className="mt-8 text-sm leading-[1.9] text-neutral-500">
-            Próximamente publicaremos nuestra oferta formativa: cursos, talleres y
-            actividades para profesionales y público general.
+          <p className="text-sm leading-[1.9] text-neutral-500">
+            Centro Márgenes cuenta con convenio con isapres. Tras la atención, se entrega la documentación necesaria para gestionar el reembolso de manera rápida y sencilla ante la isapre correspondiente. Además, contamos con aranceles diferenciados para pacientes con dificultades económicas. Actualmente disponemos de cupos de convenio para instituciones educativas y organizaciones que deseen vincularse con nuestro centro con el objetivo de favorecer un acceso más inclusivo a la atención psicológica. Para más información ponte en contacto con nosotros <a href="mailto:contacto@centromargenes.cl" className="text-blue-600 hover:underline">contacto@centromargenes.cl</a>.
           </p>
         </div>
       </section>

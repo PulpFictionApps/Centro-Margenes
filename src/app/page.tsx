@@ -107,7 +107,7 @@ export default function HomePage() {
                   Es natural tener preguntas antes de comenzar un proceso terapéutico.<br></br>
                   Aquí respondemos algunas de las dudas más comunes sobre las sesiones,<br></br> el funcionamiento de la terapia y cómo empezar.
               </p>
-              <Link href="/terapeutas" className="group block border-b border-neutral-400/50 py-8">
+              <Link href="/preguntas-frecuentes#pregunta-01" className="group block border-b border-neutral-400/50 py-8">
                 <div className="flex items-baseline gap-4">
                   <span className="text-[11px] font-light italic text-brand">01/</span>
                   <span className="font-playfair text-base font-normal uppercase tracking-wide text-brand transition-colors group-hover:text-neutral-900 lg:text-lg">
@@ -115,7 +115,7 @@ export default function HomePage() {
                   </span>
                 </div>
               </Link>
-              <Link href="/nosotros" className="group block border-b border-neutral-400/50 py-8">
+              <Link href="/preguntas-frecuentes#pregunta-02" className="group block border-b border-neutral-400/50 py-8">
                 <div className="flex items-baseline gap-4">
                   <span className="text-[11px] font-light italic text-brand">02/</span>
                   <span className="font-playfair text-base font-normal uppercase tracking-wide text-brand transition-colors group-hover:text-neutral-900 lg:text-lg">
@@ -123,17 +123,17 @@ export default function HomePage() {
                   </span>
                 </div>
               </Link>
-                <Link href="/nosotros" className="group block border-b border-neutral-400/50 py-8">
+              <Link href="/preguntas-frecuentes#pregunta-03" className="group block border-b border-neutral-400/50 py-8">
                 <div className="flex items-baseline gap-4">
-                  <span className="text-[11px] font-light italic text-brand">02/</span>
+                  <span className="text-[11px] font-light italic text-brand">03/</span>
                   <span className="font-playfair text-base font-normal uppercase tracking-wide text-brand transition-colors group-hover:text-neutral-900 lg:text-lg">
                     ¿Necesito tener un problema grave para empezar un análisis?
                   </span>
                 </div>
               </Link>
-              <Link href="/reservar" className="group block border-b border-neutral-400/50 py-8">
+              <Link href="/preguntas-frecuentes#pregunta-04" className="group block border-b border-neutral-400/50 py-8">
                 <div className="flex items-baseline gap-4">
-                  <span className="text-[11px] font-light italic text-brand">03/</span>
+                  <span className="text-[11px] font-light italic text-brand">04/</span>
                   <span className="font-playfair text-base font-normal uppercase tracking-wide text-brand transition-colors group-hover:text-neutral-900 lg:text-lg">
                     ¿Qué tipo de problemas se pueden trabajar?
                   </span>

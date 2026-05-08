@@ -22,19 +22,12 @@ export default function NuestroTrabajoPage() {
                 />
               </div>
               <p className="text-sm leading-[1.9] text-neutral-500">
-                Somos un grupo de 4 psicoanalistas que trabajamos y estudiamos el malestar subjetivo
-                producido en nuestros tiempos. Nos posicionamos cr&#237;ticamente frente al psiconan&#225;lisis
-                hegem&#243;nico y frente a la individualizaci&#243;n del malestar. Destacamos la convicci&#243;n del
-                psicoan&#225;lisis de poner el n&#250;cleo del malestar en la intersubjetividad, es decir, en los modos
-                en que los sujetos se constituyen en cuanto tales y as&#237; mismo su malestar, en una red de
-                relaciones m&#250;ltiples modeladas social, cultural, econ&#243;mica y discursivamente.
+                Somos un grupo de psicoanalistas que trabajamos y estudiamos el malestar subjetivo producido en nuestros tiempos. Nos posicionamos críticamente frente al psicoanálisis hegemónico y frente a la individualización del malestar. Destacamos la convicción del psicoanálisis de poner el núcleo del malestar en la intersubjetividad, es decir, en los modos en que los sujetos se constituyen en cuanto tales y así mismo su malestar, en una red de relaciones múltiples modeladas social, cultural, económica y discursivamente.
               </p>
               <p className="mt-6 text-sm leading-[1.9] text-neutral-500">
-                El prop&#243;sito de Centro M&#225;rgenes es sostener un espacio donde el psicoan&#225;lisis se practique como una experiencia en los bordes: no orientada a normalizar ni a corregir, sino a leer aquello que irrumpe como diferencia, desajuste o no-coincidencia del sujeto consigo mismo, haciendo de ese &ldquo;margen&rdquo; un lugar productivo desde el cual se pueda escribir, interrogar y transformar.
-              </p>
+              Nos proponemos no solo acompañar a quienes consultan en esta exploración de aquello que los aqueja y el sentido de lo que viven, sino también en poder ir estableciendo espacios de diálogo con otros profesionales, tanto del terreno de lo “psi” como en otras áreas, con el fin de enriquecer el trabajo en comunidad, entendiendo que el malestar no se vive solo, sino que emerge desde aquello cotidiano y vincular, enmarcado en las estructuras sociales y de poder que rigen nuestra sociedad.              </p>
               <p className="mt-6 text-sm leading-[1.9] text-neutral-500">
-                El Centro ofrece atenci&#243;n cl&#237;nica y adem&#225;s se presenta como un dispositivo donde el error, la duda y el desv&#237;o no son obst&#225;culos, sino condiciones para el trabajo.
-              </p>
+              Te invitamos a conocer nuestro trabajo.              </p>
             </div>
             {/* Imagen */}
             <div className="relative w-full shrink-0 lg:w-[420px]" style={{ height: '587px' }}>
