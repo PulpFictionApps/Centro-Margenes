@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { HeroSection } from "@/components/hero-section";
+import { blogPosts } from "@/lib/blog";
 
 export default function HomePage() {
   return (
@@ -184,56 +185,29 @@ export default function HomePage() {
         {/* ──── Bottom: Session Options ──── */}
         <div className="mx-auto max-w-[1200px] px-6 pb-24 pt-20 lg:pb-32">
           <div className="flex flex-col lg:flex-row lg:gap-12">
-            {/* Left: stacked list */}
+            {/* Left: blog posts list */}
             <div className="flex-1">
-              {/* Item 1 */}
-              <div className="border-b border-neutral-400/50 pb-10 pt-2">
-                <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
-                  Sesiones Raíz
-                </h4>
-                <p className="mt-1 font-playfair text-sm italic text-brand/70">
-                  Terapia individual
-                </p>
-                <p className="mt-4 max-w-[700px] text-sm leading-[1.8] text-neutral-600">
-                  Espacio continuo y semanal de escucha psicoanalítica, donde cada persona puede hablar libremente sobre aquello que le genera malestar. Un proceso singular que se construye respetando el ritmo y la historia de cada sujeto.
-                </p>
-                <Link href="/reservar" className="mt-4 inline-block font-playfair text-sm italic text-brand underline decoration-brand/40 underline-offset-4 transition-colors hover:text-neutral-900">
-                  Agendar sesión ➝
-                </Link>
-              </div>
-
-              {/* Item 2 */}
-              <div className="border-b border-neutral-400/50 pb-10 pt-10">
-                <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
-                  Serie de Recuperación
-                </h4>
-                <p className="mt-1 font-playfair text-sm italic text-brand/70">
-                  Programa de 8 sesiones
-                </p>
-                <p className="mt-4 max-w-[700px] text-sm leading-[1.8] text-neutral-600">
-                  Marco de 8 sesiones pensado para mujeres y madres en procesos de transición o después del cuidado. Un espacio para elaborar las experiencias que atraviesan la maternidad, el duelo y los cambios vitales.
-                </p>
-                <p className="mt-4 font-playfair text-sm italic text-brand/70">
-                  Próximamente
-                </p>
-              </div>
-
-              {/* Item 3 */}
-              <div className="border-b border-neutral-400/50 pb-10 pt-10">
-                <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
-                  Estaciones de Ti
-                </h4>
-                <p className="mt-1 font-playfair text-sm italic text-brand/70">
-                  Ciclo de 4 sesiones
-                </p>
-                <p className="mt-4 max-w-[700px] text-sm leading-[1.8] text-neutral-600">
-                  Marco estacional de 4 sesiones para alineación y reflexión. Un espacio breve e intensivo para hacer una pausa, revisarse y reconectar con lo que importa en cada etapa.
-                </p>
-                <p className="mt-4 font-playfair text-sm italic text-brand/70">
-                  Próximamente
-                </p>
-              </div>
-
+              {blogPosts.map((post) => (
+                <div key={post.id} className="border-b border-neutral-400/50 pb-10 pt-10 first:pt-2">
+                  <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
+                    {post.id}/ {post.title}
+                  </h4>
+                  {post.subtitle && (
+                    <p className="mt-1 font-playfair text-sm italic text-brand/70">
+                      {post.subtitle}
+                    </p>
+                  )}
+                  <p className="mt-4 max-w-[700px] text-sm leading-[1.8] text-neutral-600 line-clamp-3">
+                    {post.paragraphs[0]}
+                  </p>
+                  <Link
+                    href={`/blog#post-${post.id}`}
+                    className="mt-4 inline-block font-playfair text-sm italic text-brand underline decoration-brand/40 underline-offset-4 transition-colors hover:text-neutral-900"
+                  >
+                    Leer más ➝
+                  </Link>
+                </div>
+              ))}
             </div>
 
             {/* Right: tall image with decorative illustrations */}
@@ -259,8 +233,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-
     </>
   );
 }
