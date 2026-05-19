@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Therapist } from "@/lib/types";
 import { TherapistFormModal } from "./therapist-form-modal";
 import { TherapistDetailModal } from "./therapist-detail-modal";
-import { Plus, Pencil, Eye, Power } from "lucide-react";
+import { Plus, Pencil, Eye, Power, Trash2 } from "lucide-react";
 
 interface TherapistListProps {
   initialTherapists: Therapist[];
@@ -28,6 +28,7 @@ export function TherapistList({ initialTherapists }: TherapistListProps) {
   const [editingTherapist, setEditingTherapist] = useState<Therapist | null>(null);
   const [detailTherapist, setDetailTherapist] = useState<Therapist | null>(null);
   const [toggling, setToggling] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   const refresh = async () => {
     const supabase = createClient();
@@ -55,6 +56,28 @@ export function TherapistList({ initialTherapists }: TherapistListProps) {
   const handleEdit = (therapist: Therapist) => {
     setEditingTherapist(therapist);
     setFormOpen(true);
+  };
+
+  const handleDelete = async (therapist: Therapist) => {
+    const confirmed = window.confirm(
+      `¿Eliminar permanentemente a ${therapist.name}?\n\nEsta acción no se puede deshacer. Se eliminará su cuenta y todos sus datos de acceso.`
+    );
+    if (!confirmed) return;
+
+    setDeleting(therapist.id);
+    try {
+      const res = await fetch(`/api/admin/therapists/${therapist.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        await refresh();
+      } else {
+        const json = await res.json();
+        alert(json.error ?? "Error al eliminar el terapeuta");
+      }
+    } finally {
+      setDeleting(null);
+    }
   };
 
   const handleCreate = () => {
@@ -159,6 +182,14 @@ export function TherapistList({ initialTherapists }: TherapistListProps) {
                     }`}
                   >
                     <Power className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(t)}
+                    disabled={deleting === t.id}
+                    title="Eliminar permanentemente"
+                    className="flex h-9 w-9 items-center justify-center text-neutral-400 transition-colors hover:text-red-600 disabled:opacity-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -316,6 +347,14 @@ export function TherapistList({ initialTherapists }: TherapistListProps) {
                       }`}
                     >
                       <Power className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(t)}
+                      disabled={deleting === t.id}
+                      title="Eliminar permanentemente"
+                      className="flex h-8 w-8 items-center justify-center text-neutral-400 transition-colors hover:text-red-600 disabled:opacity-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </td>
