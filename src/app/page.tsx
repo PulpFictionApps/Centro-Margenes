@@ -211,7 +211,9 @@ export default async function HomePage() {
                     </p>
                   )}
                   <p className="mt-4 max-w-[700px] text-sm leading-[1.8] text-neutral-900 line-clamp-3">
-                    {post.paragraphs[0]}
+                    {post.content
+                      ? post.content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
+                      : post.paragraphs[0]}
                   </p>
                   <Link
                     href="/blog"

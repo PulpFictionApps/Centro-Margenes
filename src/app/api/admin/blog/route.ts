@@ -51,30 +51,43 @@ export async function POST(request: NextRequest) {
   if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
 
   const body = await request.json();
-  const { title, subtitle, image, paragraphs, published, sort_order } = body;
+  const { title, subtitle, image, paragraphs, content, published, sort_order } = body;
 
   if (!title) {
     return NextResponse.json({ error: "El título es obligatorio" }, { status: 400 });
   }
-  if (!Array.isArray(paragraphs)) {
-    return NextResponse.json({ error: "Los párrafos deben ser un array" }, { status: 400 });
-  }
 
   const supabaseAdmin = getAdminClient();
-  const { data, error } = await supabaseAdmin
+
+  const basePayload = {
+    title: String(title).trim(),
+    subtitle: subtitle ? String(subtitle).trim() || null : null,
+    image: image ? String(image).trim() || null : null,
+    paragraphs: Array.isArray(paragraphs) ? paragraphs.map((p: string) => String(p).trim()).filter(Boolean) : [],
+    published: published !== false,
+    sort_order: sort_order ? Number(sort_order) : 0,
+  };
+
+  let { data, error } = await supabaseAdmin
     .from("blog_posts")
-    .insert({
-      title: String(title).trim(),
-      subtitle: subtitle ? String(subtitle).trim() || null : null,
-      image: image ? String(image).trim() || null : null,
-      paragraphs: paragraphs.map((p: string) => String(p).trim()).filter(Boolean),
-      published: published !== false,
-      sort_order: sort_order ? Number(sort_order) : 0,
-    })
+    .insert({ ...basePayload, content: content ? String(content) : null })
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  // If content column doesn't exist yet, retry without it
+  if (error && error.message.includes("content")) {
+    console.warn("[blog POST] content column missing, retrying without it:", error.message);
+    ({ data, error } = await supabaseAdmin
+      .from("blog_posts")
+      .insert(basePayload)
+      .select()
+      .single());
+  }
+
+  if (error) {
+    console.error("[blog POST] Supabase error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
   return NextResponse.json(data, { status: 201 });
 }
 
@@ -84,30 +97,44 @@ export async function PUT(request: NextRequest) {
   if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
 
   const body = await request.json();
-  const { id, title, subtitle, image, paragraphs, published, sort_order } = body;
+  const { id, title, subtitle, image, paragraphs, content, published, sort_order } = body;
 
   if (!id) return NextResponse.json({ error: "ID requerido" }, { status: 400 });
   if (!title) return NextResponse.json({ error: "El título es obligatorio" }, { status: 400 });
-  if (!Array.isArray(paragraphs)) {
-    return NextResponse.json({ error: "Los párrafos deben ser un array" }, { status: 400 });
-  }
 
   const supabaseAdmin = getAdminClient();
-  const { data, error } = await supabaseAdmin
+
+  const basePayload = {
+    title: String(title).trim(),
+    subtitle: subtitle ? String(subtitle).trim() || null : null,
+    image: image ? String(image).trim() || null : null,
+    paragraphs: Array.isArray(paragraphs) ? paragraphs.map((p: string) => String(p).trim()).filter(Boolean) : [],
+    published: published !== false,
+    sort_order: sort_order ? Number(sort_order) : 0,
+  };
+
+  let { data, error } = await supabaseAdmin
     .from("blog_posts")
-    .update({
-      title: String(title).trim(),
-      subtitle: subtitle ? String(subtitle).trim() || null : null,
-      image: image ? String(image).trim() || null : null,
-      paragraphs: paragraphs.map((p: string) => String(p).trim()).filter(Boolean),
-      published: published !== false,
-      sort_order: sort_order ? Number(sort_order) : 0,
-    })
+    .update({ ...basePayload, content: content ? String(content) : null })
     .eq("id", id)
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  // If content column doesn't exist yet, retry without it
+  if (error && error.message.includes("content")) {
+    console.warn("[blog PUT] content column missing, retrying without it:", error.message);
+    ({ data, error } = await supabaseAdmin
+      .from("blog_posts")
+      .update(basePayload)
+      .eq("id", id)
+      .select()
+      .single());
+  }
+
+  if (error) {
+    console.error("[blog PUT] Supabase error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
   return NextResponse.json(data);
 }
 

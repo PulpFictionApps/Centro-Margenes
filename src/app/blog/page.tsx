@@ -61,12 +61,21 @@ export default async function BlogPage() {
                         {post.subtitle}
                       </p>
                     )}
-                    <div className="mt-6 space-y-4">
-                      {post.paragraphs.map((p: string, i: number) => (
-                        <p key={i} className="text-sm leading-[1.9] text-neutral-900">
-                          {p}
-                        </p>
-                      ))}
+                    <div className="mt-6">
+                      {post.content ? (
+                        <div
+                          className="prose prose-sm max-w-none text-neutral-900 [&_h1]:font-playfair [&_h1]:text-2xl [&_h1]:text-brand [&_h2]:font-playfair [&_h2]:text-xl [&_h2]:text-brand [&_h3]:font-playfair [&_h3]:text-lg [&_h3]:text-brand [&_strong]:font-semibold [&_em]:italic [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_blockquote]:border-l-4 [&_blockquote]:border-brand/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-neutral-600 [&_img]:max-w-full [&_img]:my-4 [&_hr]:border-neutral-200 [&_p]:leading-[1.9] [&_p]:text-sm"
+                          dangerouslySetInnerHTML={{ __html: post.content }}
+                        />
+                      ) : (
+                        <div className="space-y-4">
+                          {post.paragraphs.map((p: string, i: number) => (
+                            <p key={i} className="text-sm leading-[1.9] text-neutral-900">
+                              {p}
+                            </p>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Loader2, BookOpen, Eye, EyeOff, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, BookOpen, Eye, EyeOff } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { RichTextEditor } from "./rich-text-editor";
 
 export type BlogPostRow = {
   id: string;
@@ -15,6 +16,7 @@ export type BlogPostRow = {
   subtitle: string | null;
   image: string | null;
   paragraphs: string[];
+  content: string | null;
   published: boolean;
   sort_order: number;
   created_at: string;
@@ -35,7 +37,7 @@ export function BlogManager({ initialPosts }: BlogManagerProps) {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [image, setImage] = useState("");
-  const [paragraphs, setParagraphs] = useState<string[]>([""]);
+  const [content, setContent] = useState("");
   const [published, setPublished] = useState(true);
   const [sortOrder, setSortOrder] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -54,7 +56,7 @@ export function BlogManager({ initialPosts }: BlogManagerProps) {
     setTitle("");
     setSubtitle("");
     setImage("");
-    setParagraphs([""]);
+    setContent("");
     setPublished(true);
     setSortOrder(posts.length);
     setError("");
@@ -66,18 +68,18 @@ export function BlogManager({ initialPosts }: BlogManagerProps) {
     setTitle(post.title);
     setSubtitle(post.subtitle ?? "");
     setImage(post.image ?? "");
-    setParagraphs(post.paragraphs.length > 0 ? post.paragraphs : [""]);
+    // Prefer rich content; fall back to joining paragraphs as <p> tags
+    setContent(
+      post.content ??
+        (post.paragraphs.length > 0
+          ? post.paragraphs.map((p) => `<p>${p}</p>`).join("")
+          : "")
+    );
     setPublished(post.published);
     setSortOrder(post.sort_order);
     setError("");
     setFormOpen(true);
   };
-
-  const addParagraph = () => setParagraphs((prev) => [...prev, ""]);
-  const removeParagraph = (i: number) =>
-    setParagraphs((prev) => prev.filter((_, idx) => idx !== i));
-  const updateParagraph = (i: number, value: string) =>
-    setParagraphs((prev) => prev.map((p, idx) => (idx === i ? value : p)));
   const moveParagraph = (i: number, dir: -1 | 1) => {
     const next = [...paragraphs];
     const target = i + dir;
@@ -97,7 +99,8 @@ export function BlogManager({ initialPosts }: BlogManagerProps) {
         title: title.trim(),
         subtitle: subtitle.trim() || null,
         image: image.trim() || null,
-        paragraphs: paragraphs.map((p) => p.trim()).filter(Boolean),
+        content: content || null,
+        paragraphs: [],
         published,
         sort_order: sortOrder,
       };
@@ -203,13 +206,17 @@ export function BlogManager({ initialPosts }: BlogManagerProps) {
                     </p>
                   )}
                   <p className="mt-2 text-xs text-neutral-400">
-                    {post.paragraphs.length} párrafo{post.paragraphs.length !== 1 ? "s" : ""} ·{" "}
                     Orden: {post.sort_order}
                   </p>
-                  {post.paragraphs[0] && (
-                    <p className="mt-1 text-sm leading-relaxed text-neutral-500 line-clamp-2">
-                      {post.paragraphs[0]}
-                    </p>
+                  {(post.content || post.paragraphs[0]) && (
+                    <p
+                      className="mt-1 text-sm leading-relaxed text-neutral-500 line-clamp-2"
+                      dangerouslySetInnerHTML={{
+                        __html: post.content
+                          ? post.content.replace(/<[^>]+>/g, " ").trim()
+                          : post.paragraphs[0],
+                      }}
+                    />
                   )}
                 </div>
               </div>
@@ -253,7 +260,7 @@ export function BlogManager({ initialPosts }: BlogManagerProps) {
 
       {/* Form modal */}
       <Dialog open={formOpen} onOpenChange={(v) => !v && setFormOpen(false)}>
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto bg-[#EDE6CA] border-neutral-300/40">
+        <DialogContent className="max-h-[95vh] w-[95vw] !max-w-6xl overflow-y-auto bg-[#EDE6CA] border-neutral-300/40">
           <DialogHeader>
             <DialogTitle className="font-playfair text-2xl font-normal text-brand">
               {editing ? "Editar entrada" : "Nueva entrada"}
@@ -288,74 +295,34 @@ export function BlogManager({ initialPosts }: BlogManagerProps) {
               />
             </div>
 
-            {/* Image URL */}
+            {/* Cover image URL */}
             <div>
               <label className="text-[11px] uppercase tracking-[0.2em] text-neutral-500">
-                URL de imagen — opcional
+                Imagen de portada — URL opcional
               </label>
               <input
                 type="text"
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
-                placeholder="Ej: /images/blog3.jpg"
+                placeholder="https://... o /images/mi-imagen.jpg"
                 className="mt-1.5 w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-brand outline-none transition-colors focus:border-brand"
               />
+              <p className="mt-1 text-[10px] text-neutral-400">
+                También puedes insertar imágenes dentro del contenido con el botón{" "}
+                <span className="font-medium">🖼</span> del editor.
+              </p>
             </div>
 
-            {/* Paragraphs */}
+            {/* Rich text content */}
             <div>
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] uppercase tracking-[0.2em] text-neutral-500">
-                  Párrafos *
-                </label>
-                <button
-                  type="button"
-                  onClick={addParagraph}
-                  className="flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] text-brand transition-colors hover:text-neutral-900"
-                >
-                  <Plus className="h-3 w-3" />
-                  Agregar párrafo
-                </button>
-              </div>
-              <div className="mt-2 space-y-3">
-                {paragraphs.map((para, i) => (
-                  <div key={i} className="flex gap-2">
-                    <div className="flex flex-col gap-1">
-                      <button
-                        type="button"
-                        onClick={() => moveParagraph(i, -1)}
-                        disabled={i === 0}
-                        className="flex h-6 w-6 items-center justify-center text-neutral-300 hover:text-brand disabled:opacity-30"
-                      >
-                        <ChevronUp className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveParagraph(i, 1)}
-                        disabled={i === paragraphs.length - 1}
-                        className="flex h-6 w-6 items-center justify-center text-neutral-300 hover:text-brand disabled:opacity-30"
-                      >
-                        <ChevronDown className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                    <textarea
-                      value={para}
-                      onChange={(e) => updateParagraph(i, e.target.value)}
-                      rows={4}
-                      placeholder={`Párrafo ${i + 1}`}
-                      className="flex-1 border border-neutral-300 bg-white px-4 py-3 text-sm text-brand outline-none transition-colors focus:border-brand resize-y"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeParagraph(i)}
-                      disabled={paragraphs.length === 1}
-                      className="flex h-8 w-8 flex-shrink-0 items-center justify-center self-start text-neutral-300 transition-colors hover:text-red-500 disabled:opacity-30"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
+              <label className="mb-1.5 block text-[11px] uppercase tracking-[0.2em] text-neutral-500">
+                Contenido *
+              </label>
+              <RichTextEditor
+                content={content}
+                onChange={setContent}
+                placeholder="Escribe el contenido de la entrada aquí..."
+              />
             </div>
 
             {/* Controls row */}
