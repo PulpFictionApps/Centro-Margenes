@@ -203,29 +203,33 @@ export default async function HomePage() {
           <div className="flex flex-col lg:flex-row lg:gap-12">
             {/* Left: blog posts list */}
             <div className="flex-1">
-              {blogPosts.map((post, index) => (
-                <div key={post.id} className="border-b border-neutral-400/50 pb-10 pt-10 first:pt-2">
-                  <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
-                    {String(index + 1).padStart(2, "0")}/ {post.title}
-                  </h4>
-                  {post.subtitle && (
-                    <p className="mt-1 font-playfair text-sm italic text-brand/70">
-                      {post.subtitle}
+              {blogPosts.length === 0 ? (
+                <p className="text-sm leading-[1.9] text-neutral-500 italic">Próximamente publicaciones.</p>
+              ) : (
+                blogPosts.map((post, index) => (
+                  <div key={post.id} className="border-b border-neutral-400/50 pb-10 pt-10 first:pt-2">
+                    <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
+                      {String(index + 1).padStart(2, "0")}/ {post.title}
+                    </h4>
+                    {post.subtitle && (
+                      <p className="mt-1 font-playfair text-sm italic text-brand/70">
+                        {post.subtitle}
+                      </p>
+                    )}
+                    <p className="mt-4 max-w-[700px] text-sm leading-[1.8] text-neutral-900 line-clamp-3">
+                      {post.content
+                        ? post.content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
+                        : post.paragraphs?.[0] ?? ""}
                     </p>
-                  )}
-                  <p className="mt-4 max-w-[700px] text-sm leading-[1.8] text-neutral-900 line-clamp-3">
-                    {post.content
-                      ? post.content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
-                      : post.paragraphs[0]}
-                  </p>
-                  <Link
-                    href="/blog"
-                    className="mt-4 inline-block font-playfair text-sm italic text-brand underline decoration-brand/40 underline-offset-4 transition-colors hover:text-neutral-900"
-                  >
-                    Leer más ➝
-                  </Link>
-                </div>
-              ))}
+                    <Link
+                      href={`/blog#post-${post.id}`}
+                      className="mt-4 inline-block font-playfair text-sm italic text-brand underline decoration-brand/40 underline-offset-4 transition-colors hover:text-neutral-900"
+                    >
+                      Leer más ➝
+                    </Link>
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Right: tall image with decorative illustrations */}
