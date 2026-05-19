@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const therapistId = searchParams.get("therapist_id");
   const serviceId = searchParams.get("service_id");
+  const modality = searchParams.get("modality"); // "online" | "in_person" | null
 
   if (!therapistId || !serviceId) {
     return NextResponse.json({ error: "Parámetros requeridos: therapist_id, service_id" }, { status: 400 });
@@ -14,17 +15,25 @@ export async function GET(request: NextRequest) {
 
   const supabase = createServerSupabaseClient();
 
-  // Get the day_of_week values this therapist has availability configured
+  // Get the day_of_week values this therapist has availability configured, filtered by modality
   const { data: availability, error } = await supabase
     .from("availability")
-    .select("day_of_week")
+    .select("day_of_week, modality")
     .eq("therapist_id", therapistId);
 
   if (error) {
     return NextResponse.json({ error: "Error al obtener disponibilidad" }, { status: 500 });
   }
 
-  const workingDayNumbers = new Set((availability ?? []).map((a: { day_of_week: number }) => a.day_of_week));
+  // Filter by modality: keep blocks that are "both" or match the requested modality
+  const relevantBlocks = modality
+    ? (availability ?? []).filter((a: { day_of_week: number; modality?: string }) => {
+        const m = a.modality ?? "both";
+        return m === "both" || m === modality;
+      })
+    : (availability ?? []);
+
+  const workingDayNumbers = new Set(relevantBlocks.map((a: { day_of_week: number }) => a.day_of_week));
 
   if (workingDayNumbers.size === 0) {
     return NextResponse.json([]);

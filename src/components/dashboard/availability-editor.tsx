@@ -20,13 +20,22 @@ interface AvailabilityEditorProps {
   therapistId?: string;
 }
 
+type ModalityOption = "online" | "in_person" | "both";
+
 type AvailabilitySlot = {
   id?: string;
   day_of_week: number;
   start_time: string;
   end_time: string;
   slot_duration: number;
+  modality: ModalityOption;
 };
+
+const modalityOptions: { value: ModalityOption; label: string }[] = [
+  { value: "both", label: "Ambas" },
+  { value: "online", label: "Online" },
+  { value: "in_person", label: "Presencial" },
+];
 
 export function AvailabilityEditor({ therapistId }: AvailabilityEditorProps) {
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
@@ -58,6 +67,7 @@ export function AvailabilityEditor({ therapistId }: AvailabilityEditorProps) {
             start_time: a.start_time,
             end_time: a.end_time,
             slot_duration: a.slot_duration ?? 50,
+            modality: (a.modality ?? "both") as ModalityOption,
           })) ?? [];
 
         setSlots(mapped);
@@ -81,7 +91,7 @@ export function AvailabilityEditor({ therapistId }: AvailabilityEditorProps) {
       next.add(day);
       setSlots([
         ...slots,
-        { day_of_week: day, start_time: "09:00", end_time: "13:00", slot_duration: 50 },
+        { day_of_week: day, start_time: "09:00", end_time: "13:00", slot_duration: 50, modality: "both" },
       ]);
     }
     setEnabledDays(next);
@@ -90,7 +100,7 @@ export function AvailabilityEditor({ therapistId }: AvailabilityEditorProps) {
   const addSlot = (dayOfWeek: number) => {
     setSlots([
       ...slots,
-      { day_of_week: dayOfWeek, start_time: "09:00", end_time: "13:00", slot_duration: 50 },
+      { day_of_week: dayOfWeek, start_time: "09:00", end_time: "13:00", slot_duration: 50, modality: "both" },
     ]);
   };
 
@@ -129,6 +139,7 @@ export function AvailabilityEditor({ therapistId }: AvailabilityEditorProps) {
             start_time: slot.start_time,
             end_time: slot.end_time,
             slot_duration: slot.slot_duration,
+            modality: slot.modality,
           }))
         );
         if (error) throw error;
@@ -257,6 +268,24 @@ export function AvailabilityEditor({ therapistId }: AvailabilityEditorProps) {
                             {slotOptions.map((m) => (
                               <option key={m} value={m}>
                                 {m} min
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] uppercase tracking-[0.2em] text-neutral-400">
+                            Modalidad
+                          </label>
+                          <select
+                            value={slot.modality}
+                            onChange={(e) =>
+                              updateSlot(slot._index, "modality", e.target.value)
+                            }
+                            className="block w-32 border-b border-neutral-300 bg-transparent pb-1 text-sm text-brand outline-none focus:border-brand"
+                          >
+                            {modalityOptions.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
                               </option>
                             ))}
                           </select>

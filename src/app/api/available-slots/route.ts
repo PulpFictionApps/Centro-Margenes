@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
   const therapistId = searchParams.get("therapist_id");
   const serviceId = searchParams.get("service_id");
   const date = searchParams.get("date");
+  const modality = searchParams.get("modality"); // "online" | "in_person" | null
 
   if (!therapistId || !serviceId || !date) {
     return NextResponse.json(
@@ -66,10 +67,22 @@ export async function GET(request: NextRequest) {
     return NextResponse.json([]);
   }
 
+  // Filter blocks by requested modality
+  const filteredAvailability = modality
+    ? availability.filter((av) => {
+        const m = (av as Availability & { modality?: string }).modality ?? "both";
+        return m === "both" || m === modality;
+      })
+    : availability;
+
+  if (filteredAvailability.length === 0) {
+    return NextResponse.json([]);
+  }
+
   // Service duration — fall back to slot_duration from availability if service not found
   const serviceDuration =
     (serviceRes.data as { duration_minutes: number } | null)?.duration_minutes ??
-    availability[0].slot_duration ??
+    filteredAvailability[0].slot_duration ??
     60;
 
   // Build occupied minute ranges from booked appointments.
@@ -87,7 +100,7 @@ export async function GET(request: NextRequest) {
   // Generate candidate slots and filter out overlapping ones
   const slots: string[] = [];
 
-  for (const av of availability) {
+  for (const av of filteredAvailability) {
     const [startH, startM] = av.start_time.split(":").map(Number);
     const [endH, endM] = av.end_time.split(":").map(Number);
     const windowStart = startH * 60 + startM;

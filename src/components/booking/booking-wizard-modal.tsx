@@ -196,6 +196,9 @@ export function BookingWizardModal({
         therapist_id: therapistId,
         service_id: treatmentId,
       });
+      if (selectedBranch?.type) {
+        params.set("modality", selectedBranch.type);
+      }
       const res = await fetch(`/api/available-days?${params}`);
       if (res.ok) {
         const days: string[] = await res.json();
@@ -206,7 +209,7 @@ export function BookingWizardModal({
     } catch {
       setAvailableDays([]);
     }
-  }, [therapistId, treatmentId]);
+  }, [therapistId, treatmentId, selectedBranch]);
 
   useEffect(() => {
     fetchAvailableDays();
@@ -223,6 +226,9 @@ export function BookingWizardModal({
         service_id: treatmentId,
         date: selectedDate,
       });
+      if (selectedBranch?.type) {
+        params.set("modality", selectedBranch.type);
+      }
       const res = await fetch(`/api/available-slots?${params}`);
       if (res.ok) {
         const slots: string[] = await res.json();
@@ -235,7 +241,7 @@ export function BookingWizardModal({
     } finally {
       setLoadingSlots(false);
     }
-  }, [selectedDate, therapistId, treatmentId]);
+  }, [selectedDate, therapistId, treatmentId, selectedBranch]);
 
   useEffect(() => {
     fetchSlots();

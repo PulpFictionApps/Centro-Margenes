@@ -60,6 +60,7 @@ export type Availability = {
   start_time: string; // "09:00"
   end_time: string; // "17:00"
   slot_duration: number; // minutes
+  modality: "online" | "in_person" | "both";
   created_at: string;
 };
 
