@@ -10,7 +10,7 @@ function getResend(): Resend {
   return _resend;
 }
 
-const FROM_EMAIL = process.env.EMAIL_FROM || "Centro Márgenes <no-reply@centromargenes.com>";
+const FROM_EMAIL = process.env.EMAIL_FROM || "Centro Márgenes <no-reply@centromargenes.cl>";
 
 // ─── Types ─────────────────────────────────────────────────────────
 export interface AppointmentEmailData {
@@ -133,8 +133,7 @@ function confirmationHtml(data: AppointmentEmailData): string {
     </p>`;
 
   if (data.cancellationToken) {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://centromargenes.com";
-    const cancelUrl = `${baseUrl}/cancelar/${data.cancellationToken}`;
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://centromargenes.cl";
     const gcalUrl = buildGoogleCalendarUrl({
       title: `Cita con ${data.therapistName} — Centro Márgenes`,
       date: data.date,

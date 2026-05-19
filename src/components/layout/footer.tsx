@@ -77,7 +77,7 @@ export function Footer() {
             © {new Date().getFullYear()} Centro Márgenes. Todos los derechos reservados.
           </p>
           <p className="text-[10px] uppercase tracking-[0.15em] text-white/30">
-            contacto@centromargenes.cl · Santiago, Chile
+            centropsicoanalitico.margenes@gmail.com · Santiago, Chile
           </p>
         </div>
       </div>

@@ -23,8 +23,8 @@ export default function ConveniosPage() {
             <div className="relative flex-1">
               <p className="text-sm leading-[1.9] text-neutral-900">
                 Centro Márgenes cuenta con convenio con isapres. Tras la atención, se entrega la documentación necesaria para gestionar el reembolso de manera rápida y sencilla ante la isapre correspondiente. Además, contamos con aranceles diferenciados para pacientes con dificultades económicas. Actualmente disponemos de cupos de convenio para instituciones educativas y organizaciones que deseen vincularse con nuestro centro con el objetivo de favorecer un acceso más inclusivo a la atención psicológica. Para más información ponte en contacto con nosotros{" "}
-                <a href="mailto:contacto@centromargenes.cl" className="text-brand underline decoration-brand/40 underline-offset-4 hover:text-neutral-900">
-                  contacto@centromargenes.cl
+                <a href="mailto:centropsicoanalitico.margenes@gmail.com" className="text-brand underline decoration-brand/40 underline-offset-4 hover:text-neutral-900">
+                  centropsicoanalitico.margenes@gmail.com
                 </a>.
               </p>
             </div>
