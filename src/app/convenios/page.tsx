@@ -8,19 +8,19 @@ export default function ConveniosPage() {
           <h1 className="mb-12 font-playfair text-5xl font-normal leading-[1.1] text-brand lg:text-7xl">
             CONVENIOS
           </h1>
-          <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-start">
+          <div className="relative flex flex-col items-center gap-12 lg:flex-row lg:items-start">
+            {/* Ilustración decorativa sitial — anclada al pie del row */}
+            <div className="pointer-events-none absolute bottom-0 -left-48 hidden lg:block" style={{ opacity: 0.1 }}>
+              <Image
+                src="/images/Sitial2.png"
+                alt=""
+                width={680}
+                height={1000}
+                className="object-contain"
+              />
+            </div>
             {/* Texto */}
             <div className="relative flex-1">
-              {/* Ilustración decorativa sitial */}
-              <div className="pointer-events-none absolute -bottom-24 -left-48 hidden lg:block" style={{ opacity: 0.1, transform: "translateY(280px)" }}>
-                <Image
-                  src="/images/Sitial2.png"
-                  alt=""
-                  width={680}
-                  height={1000}
-                  className="object-contain"
-                />
-              </div>
               <p className="text-sm leading-[1.9] text-neutral-900">
                 Centro Márgenes cuenta con convenio con isapres. Tras la atención, se entrega la documentación necesaria para gestionar el reembolso de manera rápida y sencilla ante la isapre correspondiente. Además, contamos con aranceles diferenciados para pacientes con dificultades económicas. Actualmente disponemos de cupos de convenio para instituciones educativas y organizaciones que deseen vincularse con nuestro centro con el objetivo de favorecer un acceso más inclusivo a la atención psicológica. Para más información ponte en contacto con nosotros{" "}
                 <a href="mailto:contacto@centromargenes.cl" className="text-brand underline decoration-brand/40 underline-offset-4 hover:text-neutral-900">

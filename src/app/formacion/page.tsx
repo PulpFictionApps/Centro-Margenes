@@ -8,19 +8,19 @@ export default function FormacionPage() {
           <h1 className="mb-12 font-playfair text-5xl font-normal leading-[1.1] text-brand lg:text-7xl">
             FORMACIÓN
           </h1>
-          <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-start">
+          <div className="relative flex flex-col items-center gap-12 lg:flex-row lg:items-start">
+            {/* Ilustración decorativa libros — anclada al pie del row */}
+            <div className="pointer-events-none absolute bottom-0 -left-48 hidden lg:block" style={{ opacity: 0.1 }}>
+              <Image
+                src="/images/Libros2.png"
+                alt=""
+                width={680}
+                height={1000}
+                className="object-contain"
+              />
+            </div>
             {/* Texto */}
             <div className="relative flex-1">
-              {/* Ilustración decorativa libros */}
-              <div className="pointer-events-none absolute -bottom-24 -left-48 hidden lg:block" style={{ opacity: 0.1, transform: "translateY(280px)" }}>
-                <Image
-                  src="/images/Libros2.png"
-                  alt=""
-                  width={680}
-                  height={1000}
-                  className="object-contain"
-                />
-              </div>
               <p className="text-sm leading-[1.9] text-neutral-900">
                 Centro Márgenes realiza talleres, cursos y grupos de estudio sobre psicoanálisis, abiertos a todo público. Estos espacios buscan acercar la teoría psicoanalítica a un público más amplio, abordando conceptos, lecturas y preguntas fundamentales del campo, y promoviendo el diálogo, la reflexión y el intercambio entre quienes deseen iniciar o profundizar su recorrido en esta área.
               </p>
