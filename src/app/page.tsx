@@ -3,6 +3,9 @@ import Image from "next/image";
 import { HeroSection } from "@/components/hero-section";
 import { createClient } from "@supabase/supabase-js";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 async function getRecentBlogPosts() {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
