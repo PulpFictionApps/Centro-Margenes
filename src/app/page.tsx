@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { HeroSection } from "@/components/hero-section";
@@ -5,6 +6,17 @@ import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+export const metadata: Metadata = {
+  title: {
+    absolute: "Centro Márgenes | Psicólogos Psicoanalíticos en Providencia, Santiago",
+  },
+  description:
+    "Centro de atención psicológica psicoanalítica en Providencia, Santiago. Atención individual online y presencial. Convenios disponibles. Reserva tu primera sesión.",
+  alternates: {
+    canonical: "https://centromargenes.cl",
+  },
+};
 
 async function getRecentBlogPosts() {
   const supabase = createClient(

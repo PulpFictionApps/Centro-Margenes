@@ -1,4 +1,14 @@
 import Image from "next/image";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Formación en Psicoanálisis",
+  description:
+    "Propuestas formativas en psicoanálisis y clínica psicoanalítica en Centro Márgenes, Santiago. Seminarios, talleres y grupos de estudio para profesionales de la salud mental.",
+  alternates: {
+    canonical: "https://centromargenes.cl/formacion",
+  },
+};
 
 export default function FormacionPage() {
   return (

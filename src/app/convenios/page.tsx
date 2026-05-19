@@ -1,4 +1,14 @@
 import Image from "next/image";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Convenios",
+  description:
+    "Conoce los convenios y modalidades de pago disponibles en Centro Márgenes, Providencia, Santiago. Consulta psicológica online y presencial con convenio.",
+  alternates: {
+    canonical: "https://centromargenes.cl/convenios",
+  },
+};
 
 export default function ConveniosPage() {
   return (

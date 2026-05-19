@@ -1,8 +1,18 @@
 import Image from "next/image";
+import type { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+export const metadata: Metadata = {
+  title: "Blog de Psicología",
+  description:
+    "Artículos y reflexiones clínicas sobre psicoanálisis, salud mental y terapia psicoanalítica. Publicaciones del equipo de Centro Márgenes.",
+  alternates: {
+    canonical: "https://centromargenes.cl/blog",
+  },
+};
 
 async function getBlogPosts() {
   const supabase = createClient(

@@ -1,7 +1,17 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { Metadata } from "next";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Therapist } from "@/lib/types";
+
+export const metadata: Metadata = {
+  title: "Nuestros Terapeutas",
+  description:
+    "Conoce al equipo de psicólogos de Centro Márgenes. Especialistas en psicoanálisis con atención presencial en Providencia, Santiago, y online para todo Chile.",
+  alternates: {
+    canonical: "https://centromargenes.cl/terapeutas",
+  },
+};
 
 async function getTherapists(): Promise<Therapist[]> {
   try {

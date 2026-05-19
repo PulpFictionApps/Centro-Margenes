@@ -134,6 +134,7 @@ function confirmationHtml(data: AppointmentEmailData): string {
 
   if (data.cancellationToken) {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://centromargenes.cl";
+    const cancelUrl = `${baseUrl}/cancelar/${data.cancellationToken}`;
     const gcalUrl = buildGoogleCalendarUrl({
       title: `Cita con ${data.therapistName} — Centro Márgenes`,
       date: data.date,

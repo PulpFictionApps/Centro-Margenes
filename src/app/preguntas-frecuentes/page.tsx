@@ -1,5 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Preguntas Frecuentes",
+  description:
+    "Resuelve tus dudas sobre el psicoanálisis, el proceso terapéutico, la modalidad online y presencial, los convenios y cómo funciona Centro Márgenes.",
+  alternates: {
+    canonical: "https://centromargenes.cl/preguntas-frecuentes",
+  },
+};
 
 const faqs = [
   {

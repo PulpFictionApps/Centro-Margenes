@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import type { Metadata } from "next";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Therapist } from "@/lib/types";
 
@@ -19,6 +20,34 @@ async function getTherapist(id: string): Promise<Therapist | null> {
   } catch {
     return null;
   }
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  const therapist = await getTherapist(params.id);
+  if (!therapist) return { title: "Terapeuta no encontrado" };
+  return {
+    title: therapist.name,
+    description:
+      therapist.bio?.slice(0, 160) ||
+      `Perfil profesional de ${therapist.name}, terapeuta en Centro Márgenes. Atención psicoanalítica online y presencial.`,
+    alternates: {
+      canonical: `https://centromargenes.cl/terapeutas/${params.id}`,
+    },
+    openGraph: therapist.photo_url
+      ? {
+          images: [
+            {
+              url: therapist.photo_url,
+              alt: therapist.name,
+            },
+          ],
+        }
+      : undefined,
+  };
 }
 
 function getInitials(name: string) {

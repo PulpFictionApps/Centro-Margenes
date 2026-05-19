@@ -1,4 +1,14 @@
 ﻿import Image from "next/image";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Nuestro Trabajo",
+  description:
+    "Conoce el enfoque clínico y la propuesta terapéutica de Centro Márgenes. Psicoanálisis orientado a la singularidad de cada sujeto, en Providencia, Santiago.",
+  alternates: {
+    canonical: "https://centromargenes.cl/nuestro-trabajo",
+  },
+};
 
 export default function NuestroTrabajoPage() {
   return (
