@@ -3,67 +3,19 @@ import Image from "next/image";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Therapist } from "@/lib/types";
 
-// Demo data used when Supabase is not configured
-const demoTherapists: Therapist[] = [
-  {
-    id: "1",
-    user_id: "",
-    name: "Dra. María González",
-    email: "maria@centromargenes.cl",
-    bio: "Especialista en terapia cognitivo-conductual con más de 10 años de experiencia en el tratamiento de ansiedad y depresión.",
-    photo_url: null,
-    specialties: ["Ansiedad", "Depresión", "Estrés"],
-    offers_online: true,
-    offers_in_person: true,
-    active: true,
-    role: "therapist",
-    created_at: "",
-    updated_at: "",
-  },
-  {
-    id: "2",
-    user_id: "",
-    name: "Dr. Carlos Mendoza",
-    email: "carlos@centromargenes.cl",
-    bio: "Enfocado en el trabajo con niños y adolescentes, utilizando técnicas de juego terapéutico y terapia familiar.",
-    photo_url: null,
-    specialties: ["Infanto-juvenil", "Familia", "TDAH"],
-    offers_online: true,
-    offers_in_person: true,
-    active: true,
-    role: "therapist",
-    created_at: "",
-    updated_at: "",
-  },
-  {
-    id: "3",
-    user_id: "",
-    name: "Dra. Ana Beltrán",
-    email: "ana@centromargenes.cl",
-    bio: "Experta en terapia de parejas y relaciones interpersonales. Trabaja con un enfoque sistémico e integrativo.",
-    photo_url: null,
-    specialties: ["Parejas", "Relaciones", "Autoestima"],
-    offers_online: true,
-    offers_in_person: true,
-    active: true,
-    role: "therapist",
-    created_at: "",
-    updated_at: "",
-  },
-];
-
 async function getTherapists(): Promise<Therapist[]> {
   try {
     const supabase = createServerSupabaseClient();
     const { data, error } = await supabase
       .from("therapists")
       .select("*")
+      .eq("active", true)
       .order("name");
 
-    if (error || !data || data.length === 0) return demoTherapists;
+    if (error || !data) return [];
     return data;
   } catch {
-    return demoTherapists;
+    return [];
   }
 }
 

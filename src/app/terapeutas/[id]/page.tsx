@@ -4,54 +4,6 @@ import Image from "next/image";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Therapist } from "@/lib/types";
 
-const demoTherapists: Record<string, Therapist> = {
-  "1": {
-    id: "1",
-    user_id: "",
-    name: "Dra. María González",
-    email: "maria@centromargenes.cl",
-    bio: "Especialista en terapia cognitivo-conductual con más de 10 años de experiencia en el tratamiento de ansiedad, depresión y trastornos del estado de ánimo. Mi enfoque se centra en proporcionar herramientas prácticas para mejorar la calidad de vida de mis pacientes, trabajando desde la comprensión profunda de cada persona.",
-    photo_url: null,
-    specialties: ["Ansiedad", "Depresión", "Estrés", "Duelo", "Autoestima"],
-    offers_online: true,
-    offers_in_person: true,
-    active: true,
-    role: "therapist",
-    created_at: "",
-    updated_at: "",
-  },
-  "2": {
-    id: "2",
-    user_id: "",
-    name: "Dr. Carlos Mendoza",
-    email: "carlos@centromargenes.cl",
-    bio: "Enfocado en el trabajo con niños y adolescentes, utilizando técnicas de juego terapéutico y terapia familiar sistémica. Creo en la importancia de involucrar a toda la familia en el proceso terapéutico para lograr cambios significativos y duraderos.",
-    photo_url: null,
-    specialties: ["Infanto-juvenil", "Familia", "TDAH", "Conducta", "Bullying"],
-    offers_online: true,
-    offers_in_person: true,
-    active: true,
-    role: "therapist",
-    created_at: "",
-    updated_at: "",
-  },
-  "3": {
-    id: "3",
-    user_id: "",
-    name: "Dra. Ana Beltrán",
-    email: "ana@centromargenes.cl",
-    bio: "Experta en terapia de parejas y relaciones interpersonales con enfoque sistémico e integrativo. Mi trabajo se centra en ayudar a las parejas a construir relaciones más saludables y satisfactorias, desarrollando habilidades de comunicación y resolución de conflictos.",
-    photo_url: null,
-    specialties: ["Parejas", "Relaciones", "Autoestima", "Sexualidad", "Crisis"],
-    offers_online: true,
-    offers_in_person: true,
-    active: true,
-    role: "therapist",
-    created_at: "",
-    updated_at: "",
-  },
-};
-
 async function getTherapist(id: string): Promise<Therapist | null> {
   try {
     const supabase = createServerSupabaseClient();
@@ -59,12 +11,13 @@ async function getTherapist(id: string): Promise<Therapist | null> {
       .from("therapists")
       .select("*")
       .eq("id", id)
+      .eq("active", true)
       .single();
 
-    if (error || !data) return demoTherapists[id] ?? null;
+    if (error || !data) return null;
     return data;
   } catch {
-    return demoTherapists[id] ?? null;
+    return null;
   }
 }
 
