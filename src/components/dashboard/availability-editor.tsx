@@ -129,21 +129,17 @@ export function AvailabilityEditor({ therapistId }: AvailabilityEditorProps) {
     try {
       const supabase = createClient();
 
-      await supabase.from("availability").delete().eq("therapist_id", therapistId);
-
-      if (slots.length > 0) {
-        const { error } = await supabase.from("availability").insert(
-          slots.map((slot) => ({
-            therapist_id: therapistId,
-            day_of_week: slot.day_of_week,
-            start_time: slot.start_time,
-            end_time: slot.end_time,
-            slot_duration: slot.slot_duration,
-            modality: slot.modality,
-          }))
-        );
-        if (error) throw error;
-      }
+      const { error } = await supabase.rpc("save_therapist_availability", {
+        p_therapist_id: therapistId,
+        p_slots: slots.map((slot) => ({
+          day_of_week: slot.day_of_week,
+          start_time: slot.start_time,
+          end_time: slot.end_time,
+          slot_duration: slot.slot_duration,
+          modality: slot.modality ?? "both",
+        })),
+      });
+      if (error) throw error;
 
       setMessage("Disponibilidad guardada correctamente.");
     } catch {
