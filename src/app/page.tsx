@@ -1,9 +1,25 @@
 import Link from "next/link";
 import Image from "next/image";
 import { HeroSection } from "@/components/hero-section";
-import { blogPosts } from "@/lib/blog";
+import { createClient } from "@supabase/supabase-js";
 
-export default function HomePage() {
+async function getRecentBlogPosts() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+  const { data } = await supabase
+    .from("blog_posts")
+    .select("*")
+    .eq("published", true)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: false })
+    .limit(3);
+  return data ?? [];
+}
+
+export default async function HomePage() {
+  const blogPosts = await getRecentBlogPosts();
   return (
     <>
       {/* Hero */}
@@ -14,17 +30,14 @@ export default function HomePage() {
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="font-playfair text-3xl font-normal text-white sm:text-4xl lg:text-5xl">
              LA TERAPIA PSICOANALÍTICA
-
-
           </h2>
-          <p className="mt-8 text-sm font-semibold italic leading-relaxed text-white/90">En los márgenes se reescriben las historias</p>
-
+          <p className="mt-8 text-sm font-semibold italic leading-relaxed text-white/90">¿De qué se trata?</p>
           <p className="mt-6 text-sm leading-[1.8] text-white/80">
             Centro Márgenes es un espacio de atención clínica y de formación dedicado a la escucha y al trabajo con la singularidad de cada sujeto. Ofrecemos atención psicoanalítica y propuestas formativas que abren un lugar para pensar, cuestionar y crear nuevas lecturas. La terapia psicoanalítica es un proceso de exploración del sujeto mediante la palabra, donde el paciente habla libremente y el analista escucha, interpreta y acompaña el proceso de producción de sentido. El psicoanálisis no es solo un conjunto de técnicas, sino una práctica interpretativa y ética basada en la escucha del inconsciente. Aquí cada proceso es singular y se construye respetando el ritmo y la historia de cada persona. 
           </p>
           <div className="mt-10">
             <Link
-              href="/nosotros"
+              href="#preguntas-frecuentes"
               className="btn-fill btn-fill-white inline-block border-y border-white px-10 py-4 text-xs font-normal uppercase tracking-[0.25em] text-white transition-all duration-300"
             >
               Conocer más
@@ -39,7 +52,7 @@ export default function HomePage() {
         {/* ──── Top: Offerings ──── */}
         <div className="relative mx-auto max-w-[1200px] px-6 pt-24 lg:pt-32">
           {/* Decorative illustration */}
-          <div className="pointer-events-none absolute bottom-0 z-20 hidden lg:block" style={{ opacity: 0.4, right: "calc(max(-250px, -1 * (100vw - 1200px) / 2 - 80px))" }}>
+          <div className="pointer-events-none absolute bottom-0 z-20 hidden lg:block" style={{ opacity: 0.2, right: "calc(max(-250px, -1 * (100vw - 1200px) / 2 - 80px))" }}>
             <Image
               src="/images/Sitial2.png"
               alt=""
@@ -63,10 +76,10 @@ export default function HomePage() {
 
               {/* Right text — pushed down so title has room */}
               <div className="mt-8 flex flex-col justify-end pb-4 lg:mt-0 lg:pb-0">
-                <h3 className="text-[11px] font-normal uppercase tracking-[0.25em] text-neutral-600">
-                  Escuchar, decir y elaborar lo que produce malestar.
+                <h3 className="text-[11px] font-normal uppercase tracking-[0.25em] text-neutral-900">
+                  Escuchar, elaborar y comprender.
                 </h3>
-                <p className="mt-8 max-w-[420px] text-sm leading-[1.9] text-neutral-500">
+                <p className="mt-8 max-w-[420px] text-sm leading-[1.9] text-neutral-900">
                   La terapia es un espacio de encuentro y escucha donde aquello que genera malestar puede comenzar a ser hablado y pensado con mayor profundidad. A través del diálogo y la experiencia transferencial, el proceso permite comprender experiencias que se repiten, dar un lugar a emociones complejas y abrir nuevas formas de relacionarse con uno mismo y con los demás. <br></br><br></br>
                   Pensamos el proceso terapéutico como un lugar donde hablar libremente y explorar lo que aparece. Sin juicios ni respuestas predeterminadas, permitiendo que cada persona encuentre su propio modo de elaborar aquello que la atraviesa. En ese recorrido, el proceso terapéutico puede favorecer una relación más consciente con lo que se siente, ampliar la capacidad de reflexión y habilitar nuevas formas de estar en el mundo. 
                 </p>
@@ -83,9 +96,9 @@ export default function HomePage() {
         </div>
 
         {/* ──── Navigation Links ──── */}
-        <div className="relative mx-auto max-w-[1200px] px-6 pb-24 pt-16 lg:pb-32">
+        <div id="preguntas-frecuentes" className="relative mx-auto max-w-[1200px] px-6 pb-24 pt-16 lg:pb-32">
           {/* Decorative illustration */}
-          <div className="pointer-events-none absolute bottom-0 left-0 z-20 hidden lg:block" style={{ opacity: 0.4, left: "calc(max(-180px, -1 * (100vw - 1200px) / 2 - 80px))" }}>
+          <div className="pointer-events-none absolute bottom-0 left-0 z-20 hidden lg:block" style={{ opacity: 0.2, left: "calc(max(-180px, -1 * (100vw - 1200px) / 2 - 80px))" }}>
             <Image
               src="/images/Libros2.png"
               alt=""
@@ -187,21 +200,21 @@ export default function HomePage() {
           <div className="flex flex-col lg:flex-row lg:gap-12">
             {/* Left: blog posts list */}
             <div className="flex-1">
-              {blogPosts.map((post) => (
+              {blogPosts.map((post, index) => (
                 <div key={post.id} className="border-b border-neutral-400/50 pb-10 pt-10 first:pt-2">
                   <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
-                    {post.id}/ {post.title}
+                    {String(index + 1).padStart(2, "0")}/ {post.title}
                   </h4>
                   {post.subtitle && (
                     <p className="mt-1 font-playfair text-sm italic text-brand/70">
                       {post.subtitle}
                     </p>
                   )}
-                  <p className="mt-4 max-w-[700px] text-sm leading-[1.8] text-neutral-600 line-clamp-3">
+                  <p className="mt-4 max-w-[700px] text-sm leading-[1.8] text-neutral-900 line-clamp-3">
                     {post.paragraphs[0]}
                   </p>
                   <Link
-                    href={`/blog#post-${post.id}`}
+                    href="/blog"
                     className="mt-4 inline-block font-playfair text-sm italic text-brand underline decoration-brand/40 underline-offset-4 transition-colors hover:text-neutral-900"
                   >
                     Leer más ➝
@@ -213,11 +226,11 @@ export default function HomePage() {
             {/* Right: tall image with decorative illustrations */}
             <div className="relative mt-10 w-full max-w-[500px] flex-shrink-0 lg:mt-0" style={{ aspectRatio: "3/4" }}>
               {/* Reloj — left side, behind image */}
-              <div className="pointer-events-none absolute -left-28 top-8 z-0" style={{ opacity: 0.6, transform: "rotate(-15deg)" }}>
+              <div className="pointer-events-none absolute -left-28 top-8 z-0" style={{ opacity: 0.3, transform: "rotate(-15deg)" }}>
                 <Image src="/images/Reloj2.png" alt="" width={220} height={280} className="object-contain" />
               </div>
               {/* Llave — right side, behind image */}
-              <div className="pointer-events-none absolute -right-36 bottom-8 z-0" style={{ opacity: 0.6 }}>
+              <div className="pointer-events-none absolute -right-36 bottom-8 z-0" style={{ opacity: 0.3 }}>
                 <Image src="/images/Llave2.png" alt="" width={280} height={280} className="object-contain" />
               </div>
               {/* Main image — z-10 so illustrations go behind */}

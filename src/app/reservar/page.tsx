@@ -96,9 +96,9 @@ const demoBranches: Branch[] = [
   },
   {
     id: "2",
-    name: "Sede Santiago Centro",
+    name: "Presencial",
     type: "in_person",
-    address: "Av. Providencia 1234, Santiago",
+    address: "Providencia",
     created_at: "",
     updated_at: "",
   },
@@ -156,7 +156,7 @@ export default function ReservarPage() {
             <br />
             UNA CITA
           </h1>
-          <p className="mt-8 max-w-[420px] text-sm leading-[1.9] text-neutral-500">
+          <p className="mt-8 max-w-[420px] text-sm leading-[1.9] text-neutral-900">
             Agenda tu sesión de terapia en pocos minutos. Elige al formato y el horario que mejor se adapten a ti. Nos pondremos en contacto contigo a la brevedad.
           </p>
           <div className="mt-10">
@@ -212,7 +212,7 @@ export default function ReservarPage() {
                 <h4 className="mt-4 font-playfair text-lg font-normal text-brand">
                   {item.title}
                 </h4>
-                <p className="mt-3 text-xs leading-relaxed text-neutral-500">
+                <p className="mt-3 text-xs leading-relaxed text-neutral-900">
                   {item.desc}
                 </p>
               </div>

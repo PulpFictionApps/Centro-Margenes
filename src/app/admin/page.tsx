@@ -8,6 +8,8 @@ import {
   ArrowRight,
   UserCheck,
   Clock,
+  MapPin,
+  BookOpen,
 } from "lucide-react";
 
 export default async function AdminPage() {
@@ -127,7 +129,7 @@ export default async function AdminPage() {
       {/* ── Page header ── */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-400 capitalize">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-400">
             {dateLabel}
           </p>
           <h1 className="mt-1 font-playfair text-3xl font-normal text-brand">
@@ -264,6 +266,18 @@ export default async function AdminPage() {
                   icon: Briefcase,
                   label: "Servicios",
                   desc: `${totalServices} configurados`,
+                },
+                {
+                  href: "/admin/branches",
+                  icon: MapPin,
+                  label: "Sedes",
+                  desc: "Gestionar sedes",
+                },
+                {
+                  href: "/admin/blog",
+                  icon: BookOpen,
+                  label: "Blog",
+                  desc: "Gestionar entradas",
                 },
               ].map((item) => (
                 <Link

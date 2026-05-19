@@ -26,7 +26,6 @@ export function Footer() {
           <div className="flex flex-col items-center sm:items-start justify-center">
             <nav className="flex flex-col items-center sm:items-start gap-3">
               {[
-                { href: "/nosotros", label: "Nosotros" },
                 { href: "/nuestro-trabajo", label: "Nuestro trabajo" },
                 { href: "/terapeutas", label: "Terapeutas" },
                 { href: "/reservar", label: "Reservar cita" },
@@ -57,7 +56,7 @@ export function Footer() {
             </div>
             {/* Social */}
             <div className="mt-8 flex items-center justify-center sm:justify-start gap-5">
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-white/60 transition-colors hover:text-white">
+              <a href="https://instagram.com/centro.margenes/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-white/60 transition-colors hover:text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
               </a>
               <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-white/60 transition-colors hover:text-white">

@@ -149,7 +149,7 @@ export default async function TherapistProfilePage({
             Sobre mí
           </h3>
           <div className="mt-8 border-t border-neutral-200 pt-8">
-            <p className="text-sm leading-[1.9] text-neutral-600">
+            <p className="text-sm leading-[1.9] text-neutral-900">
               {therapist.bio}
             </p>
           </div>

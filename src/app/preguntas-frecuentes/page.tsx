@@ -63,7 +63,7 @@ export default function PreguntasFrecuentesPage() {
             <br />
             FRECUENTES
           </h1>
-          <p className="mt-8 text-sm leading-[1.9] text-neutral-500">
+          <p className="mt-8 text-sm leading-[1.9] text-neutral-900">
             Es natural tener dudas antes de comenzar un proceso terapéutico. Aquí respondemos
             las preguntas más comunes sobre el psicoanálisis, las sesiones y cómo empezar.
           </p>
@@ -103,7 +103,7 @@ export default function PreguntasFrecuentesPage() {
                     </div>
                     <div className="mt-5 space-y-4">
                       {faq.answer.map((paragraph, i) => (
-                        <p key={i} className="text-sm leading-[1.9] text-neutral-600">
+                        <p key={i} className="text-sm leading-[1.9] text-neutral-900">
                           {paragraph}
                         </p>
                       ))}
@@ -117,7 +117,7 @@ export default function PreguntasFrecuentesPage() {
 
         {/* CTA */}
         <div className="mt-16 border-t border-neutral-400/50 pt-16 text-center">
-          <p className="text-sm leading-[1.8] text-neutral-500">
+          <p className="text-sm leading-[1.8] text-neutral-900">
             ¿Tienes más preguntas? Estamos disponibles para orientarte.
           </p>
           <div className="mt-8">

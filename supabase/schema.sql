@@ -202,7 +202,7 @@ INSERT INTO treatments (name, description, duration_minutes) VALUES
 
 INSERT INTO branches (name, type, address) VALUES
   ('Online', 'online', NULL),
-  ('Sede Santiago Centro', 'in_person', 'Av. Providencia 1234, Santiago');
+  ('Presencial', 'in_person', 'Providencia');
 
 -- ============================================
 -- STORAGE BUCKET

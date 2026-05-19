@@ -1,7 +1,23 @@
 import Image from "next/image";
-import { blogPosts } from "@/lib/blog";
+import { createClient } from "@supabase/supabase-js";
 
-export default function BlogPage() {
+async function getBlogPosts() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+  const { data } = await supabase
+    .from("blog_posts")
+    .select("*")
+    .eq("published", true)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: false });
+  return data ?? [];
+}
+
+export default async function BlogPage() {
+  const blogPosts = await getBlogPosts();
+
   return (
     <>
       {/* Posts */}
@@ -20,20 +36,22 @@ export default function BlogPage() {
                   }`}
                 >
                   {/* Image */}
-                  <div className="relative aspect-[3/4] w-full shrink-0 overflow-hidden lg:w-[38%]">
-                    <Image
-                      src={post.image}
-                      alt={post.title}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 1024px) 100vw, 420px"
-                    />
-                  </div>
+                  {post.image && (
+                    <div className="relative aspect-[3/4] w-full shrink-0 overflow-hidden lg:w-[38%]">
+                      <Image
+                        src={post.image}
+                        alt={post.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 1024px) 100vw, 420px"
+                      />
+                    </div>
+                  )}
 
                   {/* Text */}
                   <div className="flex-1">
                     <div className="flex items-baseline gap-4">
-                      <span className="text-[11px] font-light italic text-brand">{post.id}/</span>
+                      <span className="text-[11px] font-light italic text-brand">{String(index + 1).padStart(2, "0")}/</span>
                       <h2 className="font-playfair text-2xl font-normal text-brand lg:text-3xl">
                         {post.title}
                       </h2>
@@ -44,8 +62,8 @@ export default function BlogPage() {
                       </p>
                     )}
                     <div className="mt-6 space-y-4">
-                      {post.paragraphs.map((p, i) => (
-                        <p key={i} className="text-sm leading-[1.9] text-neutral-600">
+                      {post.paragraphs.map((p: string, i: number) => (
+                        <p key={i} className="text-sm leading-[1.9] text-neutral-900">
                           {p}
                         </p>
                       ))}

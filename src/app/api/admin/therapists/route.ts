@@ -4,16 +4,20 @@ import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest) {
-  // Verify the requester is an admin
-  const supabase = createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+function getAdminClient() {
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceRoleKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY not set");
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    serviceRoleKey,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+}
 
-  if (!user) {
-    return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-  }
+async function verifyAdmin() {
+  const supabase = createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
 
   const { data: admin } = await supabase
     .from("therapists")
@@ -21,13 +25,55 @@ export async function POST(request: NextRequest) {
     .eq("user_id", user.id)
     .single();
 
-  if (!admin || (admin.role !== "admin" && admin.role !== "super_admin")) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
-  }
+  if (!admin || (admin.role !== "admin" && admin.role !== "super_admin")) return null;
+  return user;
+}
+
+// PUT /api/admin/therapists — update existing therapist (including role)
+export async function PUT(request: NextRequest) {
+  const user = await verifyAdmin();
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
 
   const body = await request.json();
-  const { name, email, password, bio, specialties, offers_online, offers_in_person } =
-    body;
+  const { id, name, email, bio, specialties, offers_online, offers_in_person, role, active } = body;
+
+  if (!id) return NextResponse.json({ error: "ID requerido" }, { status: 400 });
+  if (!name) return NextResponse.json({ error: "El nombre es obligatorio" }, { status: 400 });
+
+  const validRoles = ["therapist", "admin", "super_admin"];
+  if (role && !validRoles.includes(role)) {
+    return NextResponse.json({ error: "Rol inválido" }, { status: 400 });
+  }
+
+  const supabaseAdmin = getAdminClient();
+  const updatePayload: Record<string, unknown> = {
+    name: name.trim(),
+    bio: (bio ?? "").trim(),
+    specialties: specialties ?? [],
+    offers_online: offers_online ?? false,
+    offers_in_person: offers_in_person ?? true,
+  };
+
+  if (role !== undefined) updatePayload.role = role;
+  if (active !== undefined) updatePayload.active = active;
+  if (email) updatePayload.email = email.trim();
+
+  const { error: updateErr } = await supabaseAdmin
+    .from("therapists")
+    .update(updatePayload)
+    .eq("id", id);
+
+  if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+  return NextResponse.json({ success: true });
+}
+
+// POST /api/admin/therapists — create new therapist
+export async function POST(request: NextRequest) {
+  const user = await verifyAdmin();
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+
+  const body = await request.json();
+  const { name, email, password, bio, specialties, offers_online, offers_in_person } = body;
 
   if (!name || !email || !password) {
     return NextResponse.json(

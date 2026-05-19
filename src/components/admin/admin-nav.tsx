@@ -11,6 +11,8 @@ import {
   LogOut,
   ArrowLeft,
   Shield,
+  MapPin,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +21,8 @@ const navItems = [
   { href: "/admin/therapists", label: "Terapeutas", shortLabel: "Terapeutas", icon: Users, exact: false },
   { href: "/admin/services", label: "Servicios", shortLabel: "Servicios", icon: Briefcase, exact: false },
   { href: "/admin/appointments", label: "Citas", shortLabel: "Citas", icon: CalendarDays, exact: false },
+  { href: "/admin/branches", label: "Sedes", shortLabel: "Sedes", icon: MapPin, exact: false },
+  { href: "/admin/blog", label: "Blog", shortLabel: "Blog", icon: BookOpen, exact: false },
   { href: "/admin/team", label: "Equipo", shortLabel: "Equipo", icon: Shield, exact: false },
 ];
 
