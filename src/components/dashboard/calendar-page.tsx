@@ -81,6 +81,7 @@ export function CalendarPage({ therapist }: CalendarPageProps) {
       const params = new URLSearchParams({
         start_date: visibleStart,
         end_date: visibleEnd,
+        therapist_id: therapist.id,
         limit: "500",
       });
 
@@ -97,7 +98,7 @@ export function CalendarPage({ therapist }: CalendarPageProps) {
     } finally {
       setLoading(false);
     }
-  }, [visibleStart, visibleEnd, mapAppointmentsToEvents]);
+  }, [visibleStart, visibleEnd, therapist.id, mapAppointmentsToEvents]);
 
   useEffect(() => {
     fetchAppointments();
