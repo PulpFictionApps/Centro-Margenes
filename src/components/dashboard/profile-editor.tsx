@@ -51,7 +51,11 @@ export function ProfileEditor({ therapist }: ProfileEditorProps) {
       return;
     }
 
-    setForm({ ...form, photo_url: json.url });
+    // Strip any previous cache-buster and add a fresh one so the browser
+    // fetches the new file even when the storage path hasn't changed.
+    const baseUrl = json.url.split("?")[0];
+    const bustedUrl = `${baseUrl}?t=${Date.now()}`;
+    setForm({ ...form, photo_url: bustedUrl });
   };
 
   const handleSave = async () => {
@@ -107,11 +111,13 @@ export function ProfileEditor({ therapist }: ProfileEditorProps) {
             <div className="flex h-24 w-24 items-center justify-center overflow-hidden bg-neutral-100">
               {form.photo_url ? (
                 <Image
+                  key={form.photo_url}
                   src={form.photo_url}
                   alt={form.name}
                   width={96}
                   height={96}
                   className="h-full w-full object-cover"
+                  unoptimized
                 />
               ) : (
                 <span className="font-playfair text-lg text-neutral-400">
