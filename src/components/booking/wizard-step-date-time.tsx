@@ -10,11 +10,13 @@ import type { BookingFormValues } from "./booking-wizard-modal";
 interface WizardStepDateTimeProps {
   availableSlots: string[];
   loadingSlots: boolean;
+  availableDays: string[];
 }
 
 export function WizardStepDateTime({
   availableSlots,
   loadingSlots,
+  availableDays,
 }: WizardStepDateTimeProps) {
   const { setValue, watch, clearErrors } = useFormContext<BookingFormValues>();
   const selectedDateStr = watch("date");
@@ -51,11 +53,14 @@ export function WizardStepDateTime({
             mode="single"
             selected={selectedDate}
             onSelect={handleSelectDate}
-            disabled={(date) =>
-              isBefore(date, today) ||
-              date > maxDate ||
-              date.getDay() === 0
-            }
+            disabled={(date) => {
+              if (isBefore(date, today) || date > maxDate || date.getDay() === 0) return true;
+              if (availableDays.length > 0) {
+                const dateStr = format(date, "yyyy-MM-dd");
+                return !availableDays.includes(dateStr);
+              }
+              return false;
+            }}
             locale={es}
             className="border border-neutral-300"
           />

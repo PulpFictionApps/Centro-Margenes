@@ -118,7 +118,7 @@ export default function ReservarPage() {
 
         const [servicesRes, therapistsRes, branchesRes, tsRes] = await Promise.all([
           supabase.from("services").select("*").order("name"),
-          supabase.from("therapists").select("*").order("name"),
+          supabase.from("therapists").select("*").eq("active", true).order("name"),
           supabase.from("branches").select("*").order("name"),
           supabase.from("therapist_services").select("*"),
         ]);

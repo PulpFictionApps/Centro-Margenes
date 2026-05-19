@@ -96,6 +96,7 @@ export function BookingWizardModal({
   // Availability & slot state for step 4
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [availableDays, setAvailableDays] = useState<string[]>([]);
 
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingSchema),
@@ -131,29 +132,22 @@ export function BookingWizardModal({
 
   // ----- Filter therapists by modality & service -----
   const filteredTherapists = therapists.filter((therapist) => {
-    // Filter by modality (branch type)
+    // Only show active therapists
+    if (!therapist.active) return false;
+
+    // Filter by modality (branch type) — strict
     if (selectedBranch) {
       const isOnline = selectedBranch.type === "online";
-      const hasModalityConfig = therapist.offers_online || therapist.offers_in_person;
-      if (hasModalityConfig) {
-        if (isOnline && !therapist.offers_online) return false;
-        if (!isOnline && !therapist.offers_in_person) return false;
-      }
-      // If neither is configured, treat as available for all modalities
+      if (isOnline && !therapist.offers_online) return false;
+      if (!isOnline && !therapist.offers_in_person) return false;
     }
 
-    // Filter by selected service
+    // Filter by selected service (strict)
     if (treatmentId) {
-      const therapistHasAnyService = therapistServices.some(
-        (ts) => ts.therapist_id === therapist.id
+      const offersService = therapistServices.some(
+        (ts) => ts.therapist_id === therapist.id && ts.service_id === treatmentId
       );
-      if (therapistHasAnyService) {
-        const offersService = therapistServices.some(
-          (ts) => ts.therapist_id === therapist.id && ts.service_id === treatmentId
-        );
-        if (!offersService) return false;
-      }
-      // If therapist has no services configured, show them (not configured yet)
+      if (!offersService) return false;
     }
 
     return true;
@@ -165,12 +159,14 @@ export function BookingWizardModal({
     setValue("date", "");
     setValue("time", "");
     setAvailableSlots([]);
+    setAvailableDays([]);
   }, [branchId, treatmentId, setValue]);
 
   useEffect(() => {
     setValue("date", "");
     setValue("time", "");
     setAvailableSlots([]);
+    setAvailableDays([]);
   }, [therapistId, setValue]);
 
   // Reset wizard when dialog closes
@@ -183,10 +179,38 @@ export function BookingWizardModal({
         setBookingError(null);
         setConditionsAccepted(false);
         setAvailableSlots([]);
+        setAvailableDays([]);
       }, 300);
       return () => clearTimeout(timeout);
     }
   }, [open, reset]);
+
+  // ----- Fetch available days for the calendar -----
+  const fetchAvailableDays = useCallback(async () => {
+    if (!therapistId || !treatmentId) {
+      setAvailableDays([]);
+      return;
+    }
+    try {
+      const params = new URLSearchParams({
+        therapist_id: therapistId,
+        service_id: treatmentId,
+      });
+      const res = await fetch(`/api/available-days?${params}`);
+      if (res.ok) {
+        const days: string[] = await res.json();
+        setAvailableDays(days);
+      } else {
+        setAvailableDays([]);
+      }
+    } catch {
+      setAvailableDays([]);
+    }
+  }, [therapistId, treatmentId]);
+
+  useEffect(() => {
+    fetchAvailableDays();
+  }, [fetchAvailableDays]);
 
   // ----- Fetch time slots from the API -----
   const fetchSlots = useCallback(async () => {
@@ -384,6 +408,7 @@ export function BookingWizardModal({
               <WizardStepDateTime
                 availableSlots={availableSlots}
                 loadingSlots={loadingSlots}
+                availableDays={availableDays}
               />
             )}
             {step === 5 && (
