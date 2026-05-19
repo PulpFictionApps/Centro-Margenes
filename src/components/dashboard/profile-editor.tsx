@@ -35,21 +35,23 @@ export function ProfileEditor({ therapist }: ProfileEditorProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const supabase = createClient();
     const ext = file.name.split(".").pop();
     const fileName = `${therapist.id}.${ext}`;
 
-    const { error } = await supabase.storage
-      .from("therapist-photos")
-      .upload(fileName, file, { upsert: true });
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("bucket", "therapist-photos");
+    fd.append("fileName", fileName);
 
-    if (!error) {
-      const { data: urlData } = supabase.storage
-        .from("therapist-photos")
-        .getPublicUrl(fileName);
+    const res = await fetch("/api/upload-photo", { method: "POST", body: fd });
+    const json = await res.json();
 
-      setForm({ ...form, photo_url: urlData.publicUrl });
+    if (!res.ok) {
+      alert(`Error al subir foto: ${json.error ?? "Error desconocido"}`);
+      return;
     }
+
+    setForm({ ...form, photo_url: json.url });
   };
 
   const handleSave = async () => {
