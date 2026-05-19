@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate average rating (scoped to the same therapist)
-    let avgQuery = supabase
+    const avgQuery = supabase
       .from("evaluations")
       .select("rating")
       .eq("therapist_id", targetTherapistId);
