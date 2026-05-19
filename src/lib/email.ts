@@ -248,7 +248,7 @@ export interface EvaluationEmailData {
 
 function evaluationRequestHtml(data: EvaluationEmailData): string {
   const dateFormatted = formatDateES(data.date);
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://centromargenes.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://centromargenes.cl";
   const evaluationUrl = `${baseUrl}/evaluar/${data.evaluationToken}`;
 
   const body = `
