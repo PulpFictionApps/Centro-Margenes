@@ -10,7 +10,7 @@ export default function ConveniosPage() {
           </h1>
           <div className="relative flex flex-col items-center gap-12 lg:flex-row lg:items-start">
             {/* Ilustración decorativa sitial — anclada al pie del row */}
-            <div className="pointer-events-none absolute bottom-0 -left-48 hidden lg:block" style={{ opacity: 0.1 }}>
+            <div className="pointer-events-none absolute -bottom-[35px] -left-48 hidden lg:block" style={{ opacity: 0.1 }}>
               <Image
                 src="/images/Sitial2.png"
                 alt=""
