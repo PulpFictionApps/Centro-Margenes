@@ -5,7 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import { format, parseISO, isAfter, isBefore } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Appointment } from "@/lib/types";
-import { X, CalendarClock, CheckCircle2, UserX, CreditCard } from "lucide-react";
+import { X, CalendarClock, CheckCircle2, UserX, CreditCard, CalendarPlus } from "lucide-react";
+import { buildGoogleCalendarUrl } from "@/lib/utils";
 
 interface AppointmentsListProps {
   therapistId?: string;
@@ -242,6 +243,21 @@ export function AppointmentsList({ therapistId }: AppointmentsListProps) {
         <div className="flex flex-wrap gap-3 shrink-0">
           {appointment.status === "scheduled" && (
             <>
+              <a
+                href={buildGoogleCalendarUrl({
+                  title: `Cita${appointment.patients?.name ? ` — ${appointment.patients.name}` : ""}`,
+                  date: appointment.date,
+                  time: appointment.time,
+                  durationMinutes: 60,
+                  location: appointment.branches?.name ?? "",
+                })}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1.5 border-y border-blue-300 px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-blue-700 transition-colors hover:bg-blue-600 hover:text-white"
+              >
+                <CalendarPlus className="h-3.5 w-3.5" />
+                Google Calendar
+              </a>
               <button
                 onClick={() => handleStatusChange(appointment.id, "completed")}
                 className="flex items-center gap-1.5 border-y border-brand px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-brand transition-colors hover:bg-brand hover:text-white"

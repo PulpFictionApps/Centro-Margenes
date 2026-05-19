@@ -25,10 +25,11 @@ self.addEventListener("push", function (event) {
     vibrate: [200, 100, 200],
     // Silent false = play the default notification sound
     silent: false,
-    data: { url: data.url || "/dashboard" },
-    // Quick-action button shown below the notification body
+    data: { url: data.url || "/dashboard", gcalUrl: data.gcalUrl || null },
+    // Quick-action buttons shown below the notification body
     actions: [
-      { action: "open", title: "Ver" },
+      { action: "open", title: "Ver cita" },
+      ...(data.gcalUrl ? [{ action: "gcal", title: "\uD83D\uDCC5 Google Calendar" }] : []),
     ],
   };
 
@@ -38,8 +39,11 @@ self.addEventListener("push", function (event) {
 self.addEventListener("notificationclick", function (event) {
   event.notification.close();
 
-  // Determine destination URL (action button or body tap)
-  const url = event.notification.data?.url || "/dashboard";
+  // Determine destination URL based on which action was tapped
+  const url =
+    event.action === "gcal"
+      ? event.notification.data?.gcalUrl || "/dashboard"
+      : event.notification.data?.url || "/dashboard";
 
   event.waitUntil(
     clients

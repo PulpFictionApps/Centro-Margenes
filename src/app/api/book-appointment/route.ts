@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendAppointmentConfirmation } from "@/lib/email";
 import { sendPushToUser } from "@/lib/push";
+import { buildGoogleCalendarUrl } from "@/lib/utils";
 
 export const dynamic = 'force-dynamic';
 
@@ -147,11 +148,19 @@ export async function POST(request: NextRequest) {
 
     if (therapistUserId) {
       try {
+        const gcalUrl = buildGoogleCalendarUrl({
+          title: `Cita — ${patient.name.trim()}${serviceRes.data?.name ? ` (${serviceRes.data.name})` : ""}`,
+          date,
+          time,
+          durationMinutes: 60,
+          location: branchRes.data?.name ?? "",
+        });
         await sendPushToUser(supabaseAdmin, therapistUserId, {
           title: "Nueva cita agendada 📅",
           body: `${patient.name.trim()} reservó para el ${date} a las ${time}.`,
           url: "/dashboard/appointments",
           tag: "new-appointment",
+          gcalUrl,
         });
         console.log("[Push] notification sent to user", therapistUserId);
       } catch (err) {

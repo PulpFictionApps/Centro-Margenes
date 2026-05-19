@@ -28,6 +28,8 @@ export interface PushPayload {
   body: string;
   url?: string;
   tag?: string;
+  /** Optional Google Calendar "add event" URL included as a notification action */
+  gcalUrl?: string;
 }
 
 interface SubscriptionRow {

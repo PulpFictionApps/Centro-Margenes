@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { buildGoogleCalendarUrl } from "@/lib/utils";
 
 let _resend: Resend | null = null;
 
@@ -134,8 +135,20 @@ function confirmationHtml(data: AppointmentEmailData): string {
   if (data.cancellationToken) {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://centromargenes.com";
     const cancelUrl = `${baseUrl}/cancelar/${data.cancellationToken}`;
+    const gcalUrl = buildGoogleCalendarUrl({
+      title: `Cita con ${data.therapistName} — Centro Márgenes`,
+      date: data.date,
+      time: data.time,
+      durationMinutes: 60,
+      location: data.modality === "Online" ? "Online" : data.branchName,
+      details: `Servicio: ${data.serviceName}${data.modality === "Online" && data.meetingLink ? `\nEnlace: ${data.meetingLink}` : ""}`,
+    });
     body += `
     <div style="margin:24px 0 0;text-align:center;">
+      <a href="${gcalUrl}" target="_blank" style="display:inline-block;margin-bottom:12px;padding:12px 28px;background-color:#1a73e8;color:#ffffff;text-decoration:none;font-size:13px;letter-spacing:0.05em;text-transform:uppercase;border-radius:4px;">
+        📅 Agregar a Google Calendar
+      </a>
+      <br/>
       <a href="${cancelUrl}" style="display:inline-block;padding:12px 28px;background-color:#5b2525;color:#EDE6CA;text-decoration:none;font-size:13px;letter-spacing:0.05em;text-transform:uppercase;">
         Cancelar mi cita
       </a>
