@@ -43,6 +43,17 @@ export async function POST(request: NextRequest) {
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
+  // Ensure the bucket exists (creates it if missing)
+  const { data: buckets } = await adminClient.storage.listBuckets();
+  const bucketExists = buckets?.some((b) => b.name === bucket);
+  if (!bucketExists) {
+    const { error: createErr } = await adminClient.storage.createBucket(bucket, { public: true });
+    if (createErr) {
+      console.error("[upload-photo] Could not create bucket:", createErr);
+      return NextResponse.json({ error: `No se pudo crear el bucket: ${createErr.message}` }, { status: 500 });
+    }
+  }
+
   const { error } = await adminClient.storage
     .from(bucket)
     .upload(fileName, buffer, {
