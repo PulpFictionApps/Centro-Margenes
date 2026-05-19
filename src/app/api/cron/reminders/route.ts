@@ -17,9 +17,16 @@ export const dynamic = 'force-dynamic';
  * (Vercel Cron, cron-job.org, Supabase pg_cron, etc.).
  */
 export async function GET(request: NextRequest) {
-  // Verify cron secret to prevent unauthorized access
-  const secret = request.nextUrl.searchParams.get("secret");
-  if (secret !== process.env.CRON_SECRET) {
+  // Verify cron secret — supports both Vercel Cron (Authorization header)
+  // and manual calls (?secret=… query string for testing).
+  const cronSecret = process.env.CRON_SECRET;
+  const authHeader = request.headers.get("authorization");
+  const querySecret = request.nextUrl.searchParams.get("secret");
+  const isAuthorized =
+    (authHeader && cronSecret && authHeader === `Bearer ${cronSecret}`) ||
+    (querySecret && cronSecret && querySecret === cronSecret);
+
+  if (!isAuthorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
