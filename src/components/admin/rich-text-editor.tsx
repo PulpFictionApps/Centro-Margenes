@@ -7,7 +7,7 @@ import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
 import Placeholder from "@tiptap/extension-placeholder";
-import { useEffect, useCallback, useRef, useState } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import {
   Bold,
   Italic,

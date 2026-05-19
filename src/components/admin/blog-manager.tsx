@@ -80,13 +80,6 @@ export function BlogManager({ initialPosts }: BlogManagerProps) {
     setError("");
     setFormOpen(true);
   };
-  const moveParagraph = (i: number, dir: -1 | 1) => {
-    const next = [...paragraphs];
-    const target = i + dir;
-    if (target < 0 || target >= next.length) return;
-    [next[i], next[target]] = [next[target], next[i]];
-    setParagraphs(next);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
