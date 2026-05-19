@@ -163,16 +163,6 @@ const ResizableImage = Node.create({
   addNodeView() {
     return ReactNodeViewRenderer(ResizableImageView);
   },
-
-  addCommands() {
-    return {
-      setImage:
-        (attrs: Record<string, string>) =>
-        ({ commands }: { commands: Record<string, (attrs: Record<string, string>) => boolean> }) => {
-          return commands.insertContent({ type: this.name, attrs });
-        },
-    } as ReturnType<typeof this.addCommands>;
-  },
 });
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -256,7 +246,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     if (!editor) return;
     const url = window.prompt("URL de la imagen:");
     if (url?.trim()) {
-      editor.chain().focus().setImage({ src: url.trim() }).run();
+      editor.chain().focus().insertContent({ type: "image", attrs: { src: url.trim() } }).run();
     }
   }, [editor]);
 
