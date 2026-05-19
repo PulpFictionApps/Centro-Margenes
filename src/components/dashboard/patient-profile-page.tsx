@@ -49,11 +49,12 @@ export function PatientProfilePage({
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch clinical records
+      // Fetch clinical records — scoped to this therapist only
       const { data: records } = await supabase
         .from("clinical_records")
         .select("*")
         .eq("patient_id", patient.id)
+        .eq("therapist_id", therapist.id)
         .order("session_date", { ascending: false });
 
       // Fetch appointments
