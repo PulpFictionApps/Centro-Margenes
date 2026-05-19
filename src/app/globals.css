@@ -121,6 +121,12 @@ html {
   overflow-wrap: break-word;
   word-break: break-word;
 }
+/* Empty paragraphs (blank lines) — preserve visual spacing */
+.blog-content p:empty,
+.blog-content p br:only-child {
+  display: block;
+  height: 1em;
+}
 .btn-fill-tan:hover {
   color: #fff;
 }
