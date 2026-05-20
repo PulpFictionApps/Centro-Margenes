@@ -5,6 +5,7 @@ import "./globals.css";
 import { LayoutShell } from "@/components/layout/layout-shell";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { LocalBusinessJsonLd } from "@/components/json-ld";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const leggibilmente = localFont({
   src: [
@@ -127,6 +128,7 @@ export default function RootLayout({
         <LocalBusinessJsonLd />
         <LayoutShell>{children}</LayoutShell>
         <ServiceWorkerRegister />
+        <SpeedInsights />
       </body>
     </html>
   );
