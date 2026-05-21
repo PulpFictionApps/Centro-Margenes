@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
 export const dynamic = 'force-dynamic';
 
@@ -205,7 +206,9 @@ export async function DELETE(
       return NextResponse.json({ error: "No tienes acceso a esta cita" }, { status: 403 });
     }
 
-    const { error } = await supabase
+    // Use admin client to bypass RLS (ownership already verified above)
+    const adminSupabase = createAdminSupabaseClient();
+    const { error } = await adminSupabase
       .from("appointments")
       .delete()
       .eq("id", params.id);

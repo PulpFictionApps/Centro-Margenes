@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { Trash2 } from "lucide-react";
 import type { Therapist } from "@/lib/types";
 // icons used inline via status styles
 
@@ -87,6 +88,17 @@ export function AppointmentManager({ therapists }: AppointmentManagerProps) {
       .eq("id", id);
     await fetchAppointments();
   };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("¿Estás seguro de que deseas eliminar esta cita? Esta acción no se puede deshacer.")) return;
+    const response = await fetch(`/api/appointments/${id}`, { method: "DELETE" });
+    if (response.ok) {
+      await fetchAppointments();
+    }
+  };
+
+  const isPast = (status: string) =>
+    status === "completed" || status === "cancelled" || status === "no_show";
 
   return (
     <div className="space-y-6">
@@ -215,6 +227,15 @@ export function AppointmentManager({ therapists }: AppointmentManagerProps) {
                   <option value="no_show">No asistió</option>
                 </select>
               </div>
+              {isPast(ap.status) && (
+                <button
+                  onClick={() => handleDelete(ap.id)}
+                  className="mt-2 flex w-full items-center justify-center gap-1.5 border border-red-200 py-2 text-[10px] uppercase tracking-[0.15em] text-red-500 transition-colors hover:bg-red-600 hover:text-white"
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Eliminar
+                </button>
+              )}
             </div>
           ))
         )}
@@ -243,6 +264,9 @@ export function AppointmentManager({ therapists }: AppointmentManagerProps) {
               <th className="px-5 py-4 text-[10px] uppercase tracking-[0.2em] text-neutral-400">
                 Estado
               </th>
+              <th className="px-5 py-4 text-[10px] uppercase tracking-[0.2em] text-neutral-400">
+                Acciones
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -258,7 +282,7 @@ export function AppointmentManager({ therapists }: AppointmentManagerProps) {
             ) : appointments.length === 0 ? (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   className="px-5 py-16 text-center text-sm text-neutral-400"
                 >
                   No se encontraron citas con los filtros seleccionados.
@@ -294,6 +318,17 @@ export function AppointmentManager({ therapists }: AppointmentManagerProps) {
                       <option value="completed">Completada</option>
                       <option value="no_show">No asistió</option>
                     </select>
+                  </td>
+                  <td className="px-5 py-4">
+                    {isPast(ap.status) && (
+                      <button
+                        onClick={() => handleDelete(ap.id)}
+                        className="flex items-center gap-1 border border-red-200 px-3 py-1 text-[9px] uppercase tracking-[0.1em] text-red-500 transition-colors hover:bg-red-600 hover:text-white"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        Eliminar
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))
