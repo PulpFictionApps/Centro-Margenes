@@ -16,6 +16,7 @@ export function ProfileEditor({ therapist }: ProfileEditorProps) {
   const [form, setForm] = useState({
     name: therapist?.name ?? "",
     bio: therapist?.bio ?? "",
+    meeting_link: therapist?.meeting_link ?? "",
     specialties: therapist?.specialties ?? [],
     photo_url: therapist?.photo_url ?? null,
     offers_online: therapist?.offers_online ?? false,
@@ -69,6 +70,7 @@ export function ProfileEditor({ therapist }: ProfileEditorProps) {
         .update({
           name: form.name,
           bio: form.bio,
+          meeting_link: form.meeting_link.trim() || null,
           specialties: form.specialties,
           photo_url: form.photo_url,
           offers_online: form.offers_online,
@@ -182,6 +184,25 @@ export function ProfileEditor({ therapist }: ProfileEditorProps) {
               placeholder="Cuéntale a tus pacientes sobre ti..."
               className="block w-full border border-neutral-200 bg-transparent p-3 text-sm text-brand outline-none focus:border-brand placeholder:text-neutral-300 resize-none"
             />
+          </div>
+          <div className="space-y-1.5">
+            <label
+              htmlFor="meeting_link"
+              className="text-[10px] uppercase tracking-[0.2em] text-neutral-400"
+            >
+              Link de Google Meet
+            </label>
+            <input
+              id="meeting_link"
+              type="url"
+              value={form.meeting_link}
+              onChange={(e) => setForm({ ...form, meeting_link: e.target.value })}
+              placeholder="https://meet.google.com/xxx-xxxx-xxx"
+              className="block w-full border-b border-neutral-300 bg-transparent pb-2 text-sm text-brand outline-none focus:border-brand placeholder:text-neutral-300"
+            />
+            <p className="text-xs text-neutral-400">
+              Se usa automáticamente en correos cuando la cita es online.
+            </p>
           </div>
         </div>
       </div>
