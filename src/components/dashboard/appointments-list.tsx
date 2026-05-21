@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { format, parseISO, isBefore } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Appointment } from "@/lib/types";
-import { X, CalendarClock, CheckCircle2, UserX, CreditCard } from "lucide-react";
+import { X, CalendarClock, CheckCircle2, UserX, CreditCard, Calendar } from "lucide-react";
 
 interface AppointmentsListProps {
   therapistId?: string;
@@ -242,6 +242,24 @@ export function AppointmentsList({ therapistId }: AppointmentsListProps) {
         <div className="flex flex-wrap gap-2">
           {appointment.status === "scheduled" && (
             <>
+              <a
+                href={(() => {
+                  const [h, m] = appointment.time.split(":");
+                  const start = `${appointment.date.replace(/-/g, "")}T${h}${m}00`;
+                  const endH = String(Number(h) + 1).padStart(2, "0");
+                  const end = `${appointment.date.replace(/-/g, "")}T${endH}${m}00`;
+                  const title = encodeURIComponent(appointment.treatments?.name ?? "Cita");
+                  const details = encodeURIComponent(`Paciente: ${appointment.patients?.name ?? ""}`);
+                  const location = encodeURIComponent(appointment.branches?.name ?? "");
+                  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}&location=${location}`;
+                })()}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1.5 border-y border-blue-400 px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-blue-600 transition-colors hover:bg-blue-500 hover:text-white"
+              >
+                <Calendar className="h-3.5 w-3.5" />
+                Google Calendar
+              </a>
               <button
                 onClick={() => handleStatusChange(appointment.id, "completed")}
                 className="flex items-center gap-1.5 border-y border-brand px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-brand transition-colors hover:bg-brand hover:text-white"
