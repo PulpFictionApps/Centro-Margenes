@@ -6,6 +6,17 @@ import { sendPushToUser } from "@/lib/push";
 
 export const dynamic = 'force-dynamic';
 
+type ReminderKind = "24h" | "2h";
+
+type AppointmentRow = {
+  id: string;
+  date: string;
+  time: string;
+  patients: { name: string; email: string } | null;
+  therapists: { name: string; user_id?: string } | null;
+  branches: { name: string; type: string } | null;
+};
+
 /**
  * GET /api/cron/reminders?secret=<CRON_SECRET>
  *
@@ -28,6 +39,13 @@ export async function GET(request: NextRequest) {
 
   if (!isAuthorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return NextResponse.json(
+      { error: "Missing SUPABASE_SERVICE_ROLE_KEY for cron execution" },
+      { status: 500 }
+    );
   }
 
   const supabase = createServerSupabaseClient();
@@ -55,7 +73,7 @@ export async function GET(request: NextRequest) {
   }
 
   // ── Fetch candidates for a time window ───────────────────────────
-  async function fetchAppointmentsInWindow(from: Date, to: Date) {
+  async function fetchAppointmentsInWindow(from: Date, to: Date): Promise<AppointmentRow[]> {
     const fromDate = from.toISOString().slice(0, 10);
     const toDate = to.toISOString().slice(0, 10);
     const fromTime = from.toTimeString().slice(0, 5);
@@ -64,7 +82,7 @@ export async function GET(request: NextRequest) {
     // If the window crosses midnight, handle both days
     const dates = fromDate === toDate ? [fromDate] : [fromDate, toDate];
 
-    let query = supabase
+    let query = supabaseAdmin
       .from("appointments")
       .select(`
         id, date, time, status,
@@ -85,20 +103,20 @@ export async function GET(request: NextRequest) {
 
     // If cross-midnight, filter in JS
     if (fromDate !== toDate) {
-      return data.filter((a) => {
+      return (data as AppointmentRow[]).filter((a) => {
         const dt = new Date(`${a.date}T${a.time}`);
         return dt >= from && dt <= to;
       });
     }
 
-    return data;
+    return data as AppointmentRow[];
   }
 
   // ── Build email data from appointment row ────────────────────────
-  function toEmailData(row: Record<string, unknown>): AppointmentEmailData | null {
-    const patient = row.patients as { name: string; email: string } | null;
-    const therapist = row.therapists as { name: string } | null;
-    const branch = row.branches as { name: string; type: string } | null;
+  function toEmailData(row: AppointmentRow): AppointmentEmailData | null {
+    const patient = row.patients;
+    const therapist = row.therapists;
+    const branch = row.branches;
 
     if (!patient?.email) return null;
 
@@ -109,59 +127,82 @@ export async function GET(request: NextRequest) {
       patientEmail: patient.email,
       therapistName: therapist?.name || "Tu terapeuta",
       serviceName: "Consulta",
-      date: row.date as string,
-      time: row.time as string,
+      date: row.date,
+      time: row.time,
       modality: isOnline ? "Online" : "Presencial",
       branchName: branch?.name || "",
       meetingLink: isOnline ? (process.env.DEFAULT_MEETING_LINK || null) : null,
     };
   }
 
+  async function claimReminder(appointmentId: string, kind: ReminderKind) {
+    const column = kind === "24h" ? "reminder_24h_sent_at" : "reminder_2h_sent_at";
+    const { data, error } = await supabaseAdmin
+      .from("appointments")
+      .update({ [column]: new Date().toISOString() })
+      .eq("id", appointmentId)
+      .is(column, null)
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      console.error(`[Cron] failed to claim ${kind} reminder for appointment ${appointmentId}:`, error);
+      return { claimed: false, error: true };
+    }
+
+    return { claimed: !!data, error: false };
+  }
+
   // ── Helper: send push to therapist ──────────────────────────────
-  async function notifyTherapist(
-    appt: Record<string, unknown>,
-    hoursLabel: string
-  ) {
-    const therapist = appt.therapists as { name: string; user_id?: string } | null;
+  async function notifyTherapist(appt: AppointmentRow, hoursLabel: string) {
+    const therapist = appt.therapists;
     if (!therapist?.user_id) return;
-    const date = appt.date as string;
-    const time = appt.time as string;
-    const patient = appt.patients as { name: string } | null;
+    const date = appt.date;
+    const time = appt.time;
+    const patient = appt.patients;
     await sendPushToUser(supabaseAdmin, therapist.user_id, {
       title: `Cita en ${hoursLabel} ⏰`,
       body: `${patient?.name || "Paciente"} — ${date} a las ${time}`,
       url: "/dashboard/calendar",
-      tag: `reminder-${appt.id as string}`,
+      tag: `reminder-${appt.id}-${hoursLabel}`,
     }).catch((err) => console.error("[Push] reminder notification failed:", err));
   }
 
-  // ── Process 24-hour reminders ────────────────────────────────────
-  const window24 = getWindow(24);
-  const appointments24 = await fetchAppointmentsInWindow(window24.from, window24.to);
+  async function processWindow(
+    hoursAhead: number,
+    hoursLabel: string,
+    kind: ReminderKind
+  ) {
+    const window = getWindow(hoursAhead);
+    const appointments = await fetchAppointmentsInWindow(window.from, window.to);
 
-  for (const appt of appointments24) {
-    const emailData = toEmailData(appt as unknown as Record<string, unknown>);
-    if (!emailData) continue;
-    const { error } = await sendAppointmentReminder(emailData, "24 horas");
-    if (error) results.errors++;
-    else results.sent24h++;
-    // Push notification to therapist (non-blocking)
-    await notifyTherapist(appt as unknown as Record<string, unknown>, "24 horas");
+    for (const appt of appointments) {
+      const claim = await claimReminder(appt.id, kind);
+      if (claim.error) {
+        results.errors++;
+        continue;
+      }
+      if (!claim.claimed) {
+        continue;
+      }
+
+      const emailData = toEmailData(appt);
+      if (!emailData) continue;
+
+      const { error } = await sendAppointmentReminder(emailData, hoursLabel);
+      if (error) {
+        results.errors++;
+        continue;
+      }
+
+      if (kind === "24h") results.sent24h++;
+      if (kind === "2h") results.sent2h++;
+      await notifyTherapist(appt, hoursLabel);
+    }
   }
 
-  // ── Process 2-hour reminders ─────────────────────────────────────
-  const window2 = getWindow(2);
-  const appointments2 = await fetchAppointmentsInWindow(window2.from, window2.to);
-
-  for (const appt of appointments2) {
-    const emailData = toEmailData(appt as unknown as Record<string, unknown>);
-    if (!emailData) continue;
-    const { error } = await sendAppointmentReminder(emailData, "2 horas");
-    if (error) results.errors++;
-    else results.sent2h++;
-    // Push notification to therapist (non-blocking)
-    await notifyTherapist(appt as unknown as Record<string, unknown>, "2 horas");
-  }
+  await processWindow(24, "24 horas", "24h");
+  await processWindow(2, "2 horas", "2h");
 
   return NextResponse.json({
     ok: true,
