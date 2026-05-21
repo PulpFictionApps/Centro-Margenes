@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
     const [endH, endM] = block.end_time.split(":").map(Number);
     const windowStart = startH * 60 + startM;
     const windowEnd = endH * 60 + endM;
-    const step = Math.max(5, block.slot_duration ?? 60);
+    const step = 60; // Business rule: booking starts are always hourly blocks.
 
     for (
       let slotStart = windowStart;
