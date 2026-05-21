@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  createServerSupabaseClient();
+  const supabase = createServerSupabaseClient();
 
   // Service-role client for push subscription lookups (bypasses RLS)
   const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY
