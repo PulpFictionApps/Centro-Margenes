@@ -38,6 +38,12 @@ interface SubscriptionRow {
   auth: string;
 }
 
+export interface PushSendResult {
+  subscriptions: number;
+  sent: number;
+  failed: number;
+}
+
 // ── Core send ──────────────────────────────────────────────────────────────
 
 async function sendOne(sub: SubscriptionRow, payload: PushPayload): Promise<void> {
@@ -56,21 +62,24 @@ export async function sendPushToUser(
   supabaseAdmin: SupabaseClient<any>,
   userId: string,
   payload: PushPayload
-): Promise<void> {
+): Promise<PushSendResult> {
   const { data: subs } = await supabaseAdmin
     .from("push_subscriptions")
     .select("endpoint, p256dh, auth")
     .eq("user_id", userId);
 
-  if (!subs?.length) return;
+  if (!subs?.length) {
+    return { subscriptions: 0, sent: 0, failed: 0 };
+  }
 
-  await Promise.allSettled(
+  const delivery = await Promise.all(
     subs.map(async (sub: SubscriptionRow) => {
       try {
         await sendOne(sub, payload);
+        return true;
       } catch (err) {
         const statusCode = (err as { statusCode?: number }).statusCode;
-        // 410 Gone or 404 = subscription expired/revoked → clean it up
+        // 410 Gone or 404 = subscription expired/revoked -> clean it up
         if (statusCode === 410 || statusCode === 404) {
           await supabaseAdmin
             .from("push_subscriptions")
@@ -79,7 +88,15 @@ export async function sendPushToUser(
         } else {
           console.error("[push] sendOne error:", err);
         }
+        return false;
       }
     })
   );
+
+  const sent = delivery.filter(Boolean).length;
+  return {
+    subscriptions: subs.length,
+    sent,
+    failed: subs.length - sent,
+  };
 }

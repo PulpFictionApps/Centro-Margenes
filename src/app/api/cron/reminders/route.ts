@@ -73,7 +73,22 @@ export async function GET(request: NextRequest) {
     : supabase;
 
   const now = new Date();
-  const results = { sent24h: 0, sent1h: 0, errors: 0 };
+  const results = {
+    sent24h: 0,
+    sent1h: 0,
+    errors: 0,
+    queryErrors: 0,
+    emailErrors: 0,
+    candidates24h: 0,
+    candidates1h: 0,
+    alreadyClaimed24h: 0,
+    alreadyClaimed1h: 0,
+    skippedMissingPatientEmail: 0,
+    skippedMissingTherapistUser: 0,
+    pushSent: 0,
+    pushFailed: 0,
+    pushNoSubscription: 0,
+  };
 
   function toDateAndTimeInTZ(value: Date) {
     const parts = new Intl.DateTimeFormat("sv-SE", {
@@ -139,7 +154,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { data } = await query;
+    const { data, error } = await query;
+    if (error) {
+      console.error(
+        `[Cron] failed to fetch appointments for window ${fromDate} ${fromTime} -> ${toDate} ${toTime}:`,
+        error
+      );
+      results.errors++;
+      results.queryErrors++;
+      return [];
+    }
     if (!data) return [];
 
     const normalized = (data as SupabaseAppointmentRow[]).map((row) => ({
@@ -211,16 +235,34 @@ export async function GET(request: NextRequest) {
   // ── Helper: send push to therapist ──────────────────────────────
   async function notifyTherapist(appt: AppointmentRow, hoursLabel: string) {
     const therapist = appt.therapists;
-    if (!therapist?.user_id) return;
+    if (!therapist?.user_id) {
+      results.skippedMissingTherapistUser++;
+      return;
+    }
     const date = appt.date;
     const time = appt.time;
     const patient = appt.patients;
-    await sendPushToUser(supabaseAdmin, therapist.user_id, {
-      title: `Cita en ${hoursLabel} ⏰`,
-      body: `${patient?.name || "Paciente"} — ${date} a las ${time}`,
-      url: "/dashboard/calendar",
-      tag: `reminder-${appt.id}-${hoursLabel}`,
-    }).catch((err) => console.error("[Push] reminder notification failed:", err));
+    try {
+      const pushResult = await sendPushToUser(supabaseAdmin, therapist.user_id, {
+        title: `Cita en ${hoursLabel} ⏰`,
+        body: `${patient?.name || "Paciente"} — ${date} a las ${time}`,
+        url: "/dashboard/calendar",
+        tag: `reminder-${appt.id}-${hoursLabel}`,
+      });
+
+      if (pushResult.subscriptions === 0) {
+        results.pushNoSubscription++;
+      }
+      results.pushSent += pushResult.sent;
+      results.pushFailed += pushResult.failed;
+      if (pushResult.failed > 0) {
+        results.errors += pushResult.failed;
+      }
+    } catch (err) {
+      results.errors++;
+      results.pushFailed++;
+      console.error("[Push] reminder notification failed:", err);
+    }
   }
 
   async function processWindow(
@@ -231,6 +273,9 @@ export async function GET(request: NextRequest) {
     const window = getWindow(hoursAhead);
     const appointments = await fetchAppointmentsInWindow(window.from, window.to);
 
+    if (kind === "24h") results.candidates24h += appointments.length;
+    if (kind === "1h") results.candidates1h += appointments.length;
+
     for (const appt of appointments) {
       const claim = await claimReminder(appt.id, kind);
       if (claim.error) {
@@ -238,11 +283,14 @@ export async function GET(request: NextRequest) {
         continue;
       }
       if (!claim.claimed) {
+        if (kind === "24h") results.alreadyClaimed24h++;
+        if (kind === "1h") results.alreadyClaimed1h++;
         continue;
       }
 
       const emailData = toEmailData(appt);
       if (!emailData) {
+        results.skippedMissingPatientEmail++;
         await releaseReminderClaim(appt.id, kind);
         continue;
       }
@@ -250,6 +298,7 @@ export async function GET(request: NextRequest) {
       const { error } = await sendAppointmentReminder(emailData, hoursLabel);
       if (error) {
         results.errors++;
+        results.emailErrors++;
         await releaseReminderClaim(appt.id, kind);
         continue;
       }
@@ -266,6 +315,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     ok: true,
     ...results,
+    timezone: REMINDER_TIMEZONE,
     checkedAt: now.toISOString(),
   });
 }

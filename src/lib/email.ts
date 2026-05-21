@@ -13,7 +13,6 @@ const FROM_EMAIL = process.env.EMAIL_FROM || "Centro Márgenes <no-reply@centrom
 
 function getEmailConfigError(): string | null {
   if (!process.env.RESEND_API_KEY) return "Missing RESEND_API_KEY";
-  if (!process.env.EMAIL_FROM) return "Missing EMAIL_FROM";
   return null;
 }
 
