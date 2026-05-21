@@ -6,6 +6,8 @@ import { sendPushToUser } from "@/lib/push";
 
 export const dynamic = 'force-dynamic';
 
+const REMINDER_TIMEZONE = "America/Santiago";
+
 type ReminderKind = "24h" | "1h";
 
 type AppointmentRow = {
@@ -41,9 +43,11 @@ export async function GET(request: NextRequest) {
   // and manual calls (?secret=… query string for testing).
   const cronSecret = process.env.CRON_SECRET;
   const authHeader = request.headers.get("authorization");
+  const headerSecret = request.headers.get("x-cron-secret");
   const querySecret = request.nextUrl.searchParams.get("secret");
   const isAuthorized =
     (authHeader && cronSecret && authHeader === `Bearer ${cronSecret}`) ||
+    (headerSecret && cronSecret && headerSecret === cronSecret) ||
     (querySecret && cronSecret && querySecret === cronSecret);
 
   if (!isAuthorized) {
@@ -57,7 +61,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const supabase = createServerSupabaseClient();
+  createServerSupabaseClient();
 
   // Service-role client for push subscription lookups (bypasses RLS)
   const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -71,6 +75,30 @@ export async function GET(request: NextRequest) {
   const now = new Date();
   const results = { sent24h: 0, sent1h: 0, errors: 0 };
 
+  function toDateAndTimeInTZ(value: Date) {
+    const parts = new Intl.DateTimeFormat("sv-SE", {
+      timeZone: REMINDER_TIMEZONE,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+      .formatToParts(value)
+      .reduce<Record<string, string>>((acc, part) => {
+        if (part.type !== "literal") {
+          acc[part.type] = part.value;
+        }
+        return acc;
+      }, {});
+
+    return {
+      date: `${parts.year}-${parts.month}-${parts.day}`,
+      time: `${parts.hour}:${parts.minute}`,
+    };
+  }
+
   // ── Helper: compute window boundaries ────────────────────────────
   // We look for appointments whose date+time falls within a 30-min
   // window around the target offset (24h or 1h from now).
@@ -83,28 +111,32 @@ export async function GET(request: NextRequest) {
 
   // ── Fetch candidates for a time window ───────────────────────────
   async function fetchAppointmentsInWindow(from: Date, to: Date): Promise<AppointmentRow[]> {
-    const fromDate = from.toISOString().slice(0, 10);
-    const toDate = to.toISOString().slice(0, 10);
-    const fromTime = from.toTimeString().slice(0, 5);
-    const toTime = to.toTimeString().slice(0, 5);
+    const fromParts = toDateAndTimeInTZ(from);
+    const toParts = toDateAndTimeInTZ(to);
 
-    // If the window crosses midnight, handle both days
-    const dates = fromDate === toDate ? [fromDate] : [fromDate, toDate];
+    const fromDate = fromParts.date;
+    const toDate = toParts.date;
+    const fromTime = fromParts.time;
+    const toTime = toParts.time;
 
-    let query = supabaseAdmin
-      .from("appointments")
+    let query = supabaseAdmin.from("appointments")
       .select(`
         id, date, time, status,
         patients ( name, email ),
         therapists ( name, user_id, meeting_link ),
         branches ( name, type )
       `)
-      .in("status", ["scheduled"])
-      .in("date", dates);
+      .in("status", ["scheduled"]);
 
-    // If same day, we can constrain time directly
     if (fromDate === toDate) {
-      query = query.gte("time", fromTime).lte("time", toTime);
+      query = query
+        .eq("date", fromDate)
+        .gte("time", fromTime)
+        .lte("time", toTime);
+    } else {
+      query = query.or(
+        `and(date.eq.${fromDate},time.gte.${fromTime}),and(date.eq.${toDate},time.lte.${toTime})`
+      );
     }
 
     const { data } = await query;
@@ -118,14 +150,6 @@ export async function GET(request: NextRequest) {
       therapists: row.therapists?.[0] ?? null,
       branches: row.branches?.[0] ?? null,
     }));
-
-    // If cross-midnight, filter in JS
-    if (fromDate !== toDate) {
-      return normalized.filter((a) => {
-        const dt = new Date(`${a.date}T${a.time}`);
-        return dt >= from && dt <= to;
-      });
-    }
 
     return normalized;
   }
@@ -172,6 +196,18 @@ export async function GET(request: NextRequest) {
     return { claimed: !!data, error: false };
   }
 
+  async function releaseReminderClaim(appointmentId: string, kind: ReminderKind) {
+    const column = kind === "24h" ? "reminder_24h_sent_at" : "reminder_1h_sent_at";
+    const { error } = await supabaseAdmin
+      .from("appointments")
+      .update({ [column]: null })
+      .eq("id", appointmentId);
+
+    if (error) {
+      console.error(`[Cron] failed to release ${kind} reminder claim for appointment ${appointmentId}:`, error);
+    }
+  }
+
   // ── Helper: send push to therapist ──────────────────────────────
   async function notifyTherapist(appt: AppointmentRow, hoursLabel: string) {
     const therapist = appt.therapists;
@@ -206,11 +242,15 @@ export async function GET(request: NextRequest) {
       }
 
       const emailData = toEmailData(appt);
-      if (!emailData) continue;
+      if (!emailData) {
+        await releaseReminderClaim(appt.id, kind);
+        continue;
+      }
 
       const { error } = await sendAppointmentReminder(emailData, hoursLabel);
       if (error) {
         results.errors++;
+        await releaseReminderClaim(appt.id, kind);
         continue;
       }
 
