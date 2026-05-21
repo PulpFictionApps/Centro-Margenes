@@ -24,9 +24,12 @@ type SupabaseAppointmentRow = {
   id: string;
   date: string;
   time: string;
-  patients: Array<{ name: string; email: string }> | null;
-  therapists: Array<{ name: string; user_id?: string; meeting_link?: string | null }> | null;
-  branches: Array<{ name: string; type: string }> | null;
+  patients: { name: string; email: string } | Array<{ name: string; email: string }> | null;
+  therapists:
+    | { name: string; user_id?: string; meeting_link?: string | null }
+    | Array<{ name: string; user_id?: string; meeting_link?: string | null }>
+    | null;
+  branches: { name: string; type: string } | Array<{ name: string; type: string }> | null;
 };
 
 /**
@@ -167,13 +170,18 @@ export async function GET(request: NextRequest) {
     }
     if (!data) return [];
 
+    const getEmbedded = <T,>(value: T | T[] | null): T | null => {
+      if (!value) return null;
+      return Array.isArray(value) ? value[0] ?? null : value;
+    };
+
     const normalized = (data as SupabaseAppointmentRow[]).map((row) => ({
       id: row.id,
       date: row.date,
       time: row.time,
-      patients: row.patients?.[0] ?? null,
-      therapists: row.therapists?.[0] ?? null,
-      branches: row.branches?.[0] ?? null,
+      patients: getEmbedded(row.patients),
+      therapists: getEmbedded(row.therapists),
+      branches: getEmbedded(row.branches),
     }));
 
     return normalized;
