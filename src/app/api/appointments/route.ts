@@ -39,7 +39,6 @@ export async function POST(request: NextRequest) {
       time,
       treatment_id,
       branch_id,
-      notes,
       repeat_weekly,
       repeat_until,
       repeat_weeks,
@@ -120,7 +119,6 @@ export async function POST(request: NextRequest) {
         date: d,
         time,
         status: "scheduled",
-        notes: notes || null,
       }));
 
     if (rowsToInsert.length === 0) {

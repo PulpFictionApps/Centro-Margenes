@@ -43,6 +43,7 @@ export function PatientDetailModal({
 }: PatientDetailModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const {
     register,
@@ -80,6 +81,36 @@ export function PatientDetailModal({
     }
   };
 
+  const handleDelete = async () => {
+    const confirmed = window.confirm(
+      "¿Eliminar este paciente? Esta acción borrará sus citas, fichas clínicas y vínculos con terapeutas."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const response = await fetch(`/api/patients/${patient.id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        onClose();
+        return;
+      }
+
+      const result = await response.json().catch(() => null);
+      alert(result?.error || "No se pudo eliminar el paciente");
+    } catch (error) {
+      console.error("Error deleting patient:", error);
+      alert("No se pudo eliminar el paciente");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "No especificada";
     return new Date(dateString).toLocaleDateString("es-CL", {
@@ -103,7 +134,7 @@ export function PatientDetailModal({
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90dvh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
@@ -240,9 +271,14 @@ export function PatientDetailModal({
             </div>
 
             <div className="flex justify-end pt-2">
-              <Button onClick={() => setIsEditing(true)}>
-                Editar información
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+                  {deleting ? "Eliminando..." : "Eliminar paciente"}
+                </Button>
+                <Button onClick={() => setIsEditing(true)}>
+                  Editar información
+                </Button>
+              </div>
             </div>
           </div>
         )}

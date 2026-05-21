@@ -50,6 +50,7 @@ export function PatientProfilePage({
   const [showScheduleForm, setShowScheduleForm] = useState(false);
   const [scheduleLoading, setScheduleLoading] = useState(false);
   const [scheduleMessage, setScheduleMessage] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [scheduleForm, setScheduleForm] = useState({
     date: "",
     time: "",
@@ -172,6 +173,36 @@ ${record.observations ? `Observaciones: ${record.observations}` : ""}
     }
   };
 
+  const handleDeletePatient = async () => {
+    const confirmed = window.confirm(
+      "¿Eliminar este paciente? Esta acción borrará sus citas, fichas clínicas y vínculos con terapeutas."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeleteLoading(true);
+    try {
+      const response = await fetch(`/api/patients/${patient.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        alert(payload?.error || "No se pudo eliminar el paciente.");
+        return;
+      }
+
+      router.push("/dashboard/patients");
+    } catch (error) {
+      console.error("Error deleting patient:", error);
+      alert("No se pudo eliminar el paciente.");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     try {
       return format(parseISO(dateString), "EEEE d 'de' MMMM yyyy, HH:mm", {
@@ -235,6 +266,16 @@ ${record.observations ? `Observaciones: ${record.observations}` : ""}
             WhatsApp
           </Button>
         )}
+      </div>
+
+      <div className="flex justify-end">
+        <Button
+          variant="destructive"
+          onClick={handleDeletePatient}
+          disabled={deleteLoading}
+        >
+          {deleteLoading ? "Eliminando..." : "Eliminar paciente"}
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

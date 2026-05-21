@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
 export const dynamic = 'force-dynamic';
 
@@ -177,6 +178,77 @@ export async function PATCH(
     return NextResponse.json({ patient });
   } catch (error) {
     console.error("Update patient error:", error);
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
+  }
+}
+
+// DELETE /api/patients/[id] - Delete patient
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const supabase = createServerSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
+    const { data: therapist } = await supabase
+      .from("therapists")
+      .select("id, role")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!therapist) {
+      return NextResponse.json({ error: "Terapeuta no encontrado" }, { status: 404 });
+    }
+
+    const { data: existingPatient } = await supabase
+      .from("patients")
+      .select(`
+        id,
+        appointments (therapist_id)
+      `)
+      .eq("id", params.id)
+      .single();
+
+    if (!existingPatient) {
+      return NextResponse.json({ error: "Paciente no encontrado" }, { status: 404 });
+    }
+
+    const hasAppointmentAccess = existingPatient.appointments?.some(
+      (a: { therapist_id: string }) => a.therapist_id === therapist.id
+    );
+
+    const { data: ownedLink } = await supabase
+      .from("therapist_patients")
+      .select("id")
+      .eq("therapist_id", therapist.id)
+      .eq("patient_id", params.id)
+      .maybeSingle();
+
+    const hasAccess = hasAppointmentAccess || !!ownedLink;
+
+    if (!hasAccess) {
+      return NextResponse.json({ error: "No tienes acceso a este paciente" }, { status: 403 });
+    }
+
+    const adminSupabase = createAdminSupabaseClient();
+    const { error } = await adminSupabase
+      .from("patients")
+      .delete()
+      .eq("id", params.id);
+
+    if (error) {
+      console.error("Error deleting patient:", error);
+      return NextResponse.json({ error: "Error al eliminar paciente" }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Delete patient error:", error);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }
