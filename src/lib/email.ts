@@ -263,7 +263,7 @@ function evaluationRequestHtml(data: EvaluationEmailData): string {
     <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.6;">
       Tu opinión nos ayuda a mejorar nuestro servicio. ¿Podrías tomar un momento para evaluar tu experiencia?
     </p>
-    <div style="text-align:center;margin:32px 0;">
+    <div style="text-align:center;margin:32px 0;"> 
       <a href="${evaluationUrl}" style="display:inline-block;padding:14px 32px;background-color:#5b2525;color:#EDE6CA;text-decoration:none;font-size:14px;letter-spacing:0.05em;text-transform:uppercase;border-radius:4px;">
         Evaluar mi sesión
       </a>
