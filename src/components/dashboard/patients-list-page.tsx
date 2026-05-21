@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, type FormEvent } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { Therapist, Patient } from "@/lib/types";
+import { Therapist, Patient, Branch, Service } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,6 +47,19 @@ export function PatientsListPage({ therapist }: PatientsListPageProps) {
     birthdate: "",
     document: "",
   });
+  const [scheduleOnCreate, setScheduleOnCreate] = useState(false);
+  const [initialAppointment, setInitialAppointment] = useState({
+    date: "",
+    time: "",
+    branch_id: "",
+    treatment_id: "",
+  });
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [repeatWeekly, setRepeatWeekly] = useState(false);
+  const [repeatMode, setRepeatMode] = useState<"count" | "until" | "forever">("count");
+  const [repeatWeeks, setRepeatWeeks] = useState(12);
+  const [repeatUntil, setRepeatUntil] = useState("");
 
   const supabase = createClient();
 
@@ -99,6 +112,20 @@ export function PatientsListPage({ therapist }: PatientsListPageProps) {
     fetchPatients();
   }, [fetchPatients]);
 
+  useEffect(() => {
+    async function fetchSchedulingCatalog() {
+      const [branchRes, serviceRes] = await Promise.all([
+        supabase.from("branches").select("*").order("name"),
+        supabase.from("services").select("*").order("name"),
+      ]);
+
+      setBranches((branchRes.data as Branch[]) ?? []);
+      setServices((serviceRes.data as Service[]) ?? []);
+    }
+
+    fetchSchedulingCatalog();
+  }, [supabase]);
+
   // Filter patients by search and active status
   useEffect(() => {
     const filtered = patients.filter((patient) => {
@@ -133,6 +160,7 @@ export function PatientsListPage({ therapist }: PatientsListPageProps) {
     e.preventDefault();
     setCreating(true);
     setCreateMessage("");
+    let successMessage = "";
 
     try {
       const response = await fetch("/api/patients", {
@@ -147,7 +175,64 @@ export function PatientsListPage({ therapist }: PatientsListPageProps) {
         return;
       }
 
-      setCreateMessage(result.message || "Paciente agregado correctamente.");
+      if (scheduleOnCreate) {
+        if (!initialAppointment.date || !initialAppointment.time) {
+          setCreateMessage("Paciente guardado, pero falta fecha/hora para agendar la cita.");
+          await fetchPatients();
+          return;
+        }
+
+        if (repeatWeekly && repeatMode === "until" && !repeatUntil) {
+          setCreateMessage("Paciente guardado, pero debes indicar la fecha límite de repetición.");
+          await fetchPatients();
+          return;
+        }
+
+        const patientId = result.patient?.id;
+        if (!patientId) {
+          setCreateMessage("Paciente guardado, pero no se pudo obtener el ID para agendar cita.");
+          await fetchPatients();
+          return;
+        }
+
+        const apptResponse = await fetch("/api/appointments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            patient_id: patientId,
+            date: initialAppointment.date,
+            time: initialAppointment.time,
+            branch_id: initialAppointment.branch_id || null,
+            treatment_id: initialAppointment.treatment_id || null,
+            repeat_weekly: repeatWeekly,
+            repeat_weeks: repeatWeekly
+              ? repeatMode === "forever"
+                ? 52
+                : repeatMode === "count"
+                  ? repeatWeeks
+                  : 0
+              : 0,
+            repeat_until: repeatWeekly && repeatMode === "until" ? repeatUntil : null,
+          }),
+        });
+
+        const apptResult = await apptResponse.json();
+        if (!apptResponse.ok) {
+          setCreateMessage(
+            `Paciente guardado, pero no se pudo agendar la cita: ${apptResult.error || "Error desconocido"}`
+          );
+          await fetchPatients();
+          return;
+        }
+
+        if (apptResult.created_count > 1 || (apptResult.skipped_conflicts?.length ?? 0) > 0) {
+          const created = apptResult.created_count ?? 0;
+          const skipped = apptResult.skipped_conflicts?.length ?? 0;
+          successMessage = `Paciente guardado. Citas creadas: ${created}. ${skipped > 0 ? `Conflictos omitidos: ${skipped}.` : ""}`;
+        }
+      }
+
+      setCreateMessage(successMessage || result.message || "Paciente agregado correctamente.");
       setNewPatient({
         name: "",
         email: "",
@@ -155,6 +240,12 @@ export function PatientsListPage({ therapist }: PatientsListPageProps) {
         birthdate: "",
         document: "",
       });
+      setInitialAppointment({ date: "", time: "", branch_id: "", treatment_id: "" });
+      setScheduleOnCreate(false);
+      setRepeatWeekly(false);
+      setRepeatMode("count");
+      setRepeatWeeks(12);
+      setRepeatUntil("");
       await fetchPatients();
     } catch {
       setCreateMessage("Error al guardar el paciente.");
@@ -221,6 +312,108 @@ export function PatientsListPage({ therapist }: PatientsListPageProps) {
                 value={newPatient.birthdate}
                 onChange={(e) => setNewPatient((prev) => ({ ...prev, birthdate: e.target.value }))}
               />
+
+              <label className="md:col-span-2 flex items-center gap-2 text-sm text-neutral-600">
+                <input
+                  type="checkbox"
+                  checked={scheduleOnCreate}
+                  onChange={(e) => setScheduleOnCreate(e.target.checked)}
+                />
+                Agendar primera cita al guardar paciente
+              </label>
+
+              {scheduleOnCreate && (
+                <>
+                  <Input
+                    required
+                    type="date"
+                    value={initialAppointment.date}
+                    onChange={(e) =>
+                      setInitialAppointment((prev) => ({ ...prev, date: e.target.value }))
+                    }
+                  />
+                  <Input
+                    required
+                    type="time"
+                    value={initialAppointment.time}
+                    onChange={(e) =>
+                      setInitialAppointment((prev) => ({ ...prev, time: e.target.value }))
+                    }
+                  />
+
+                  <select
+                    value={initialAppointment.branch_id}
+                    onChange={(e) =>
+                      setInitialAppointment((prev) => ({ ...prev, branch_id: e.target.value }))
+                    }
+                    className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="">Sucursal / modalidad (opcional)</option>
+                    {branches.map((branch) => (
+                      <option key={branch.id} value={branch.id}>
+                        {branch.name} ({branch.type === "online" ? "Online" : "Presencial"})
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={initialAppointment.treatment_id}
+                    onChange={(e) =>
+                      setInitialAppointment((prev) => ({ ...prev, treatment_id: e.target.value }))
+                    }
+                    className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="">Servicio (opcional)</option>
+                    {services.map((service) => (
+                      <option key={service.id} value={service.id}>
+                        {service.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  <label className="md:col-span-2 flex items-center gap-2 text-sm text-neutral-600">
+                    <input
+                      type="checkbox"
+                      checked={repeatWeekly}
+                      onChange={(e) => setRepeatWeekly(e.target.checked)}
+                    />
+                    Repetir semanalmente este horario
+                  </label>
+
+                  {repeatWeekly && (
+                    <>
+                      <select
+                        value={repeatMode}
+                        onChange={(e) => setRepeatMode(e.target.value as "count" | "until" | "forever")}
+                        className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                      >
+                        <option value="count">Repetir por cantidad de semanas</option>
+                        <option value="until">Repetir hasta una fecha</option>
+                        <option value="forever">Sin fin (crea 52 semanas)</option>
+                      </select>
+
+                      {repeatMode === "count" && (
+                        <Input
+                          type="number"
+                          min={1}
+                          max={52}
+                          value={repeatWeeks}
+                          onChange={(e) => setRepeatWeeks(Math.max(1, Number(e.target.value || 1)))}
+                          placeholder="Cantidad de semanas"
+                        />
+                      )}
+
+                      {repeatMode === "until" && (
+                        <Input
+                          type="date"
+                          value={repeatUntil}
+                          onChange={(e) => setRepeatUntil(e.target.value)}
+                        />
+                      )}
+                    </>
+                  )}
+                </>
+              )}
 
               <div className="md:col-span-2 flex items-center gap-3">
                 <Button type="submit" disabled={creating}>
