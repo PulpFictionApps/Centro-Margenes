@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { format, parseISO, isAfter, isBefore } from "date-fns";
+import { format, parseISO, isBefore } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Appointment } from "@/lib/types";
 import { X, CalendarClock, CheckCircle2, UserX, CreditCard } from "lucide-react";
