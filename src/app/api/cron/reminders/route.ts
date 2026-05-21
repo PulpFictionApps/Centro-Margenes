@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { sendAppointmentReminder, type AppointmentEmailData } from "@/lib/email";
+import {
+  sendAppointmentReminder,
+  sendTherapistReminder,
+  type AppointmentEmailData,
+  type TherapistReminderEmailData,
+} from "@/lib/email";
 import { sendPushToUser } from "@/lib/push";
 
 export const dynamic = 'force-dynamic';
@@ -16,7 +21,7 @@ type AppointmentRow = {
   date: string;
   time: string;
   patients: { name: string; email: string } | null;
-  therapists: { name: string; user_id?: string; meeting_link?: string | null } | null;
+  therapists: { name: string; email?: string; user_id?: string; meeting_link?: string | null } | null;
   branches: { name: string; type: string } | null;
 };
 
@@ -26,8 +31,8 @@ type SupabaseAppointmentRow = {
   time: string;
   patients: { name: string; email: string } | Array<{ name: string; email: string }> | null;
   therapists:
-    | { name: string; user_id?: string; meeting_link?: string | null }
-    | Array<{ name: string; user_id?: string; meeting_link?: string | null }>
+    | { name: string; email?: string; user_id?: string; meeting_link?: string | null }
+    | Array<{ name: string; email?: string; user_id?: string; meeting_link?: string | null }>
     | null;
   branches: { name: string; type: string } | Array<{ name: string; type: string }> | null;
 };
@@ -92,6 +97,9 @@ export async function GET(request: NextRequest) {
     pushSent: 0,
     pushFailed: 0,
     pushNoSubscription: 0,
+    therapistEmailSent: 0,
+    therapistEmailErrors: 0,
+    skippedMissingTherapistEmail: 0,
   };
 
   function toDateAndTimeInTZ(value: Date) {
@@ -142,7 +150,7 @@ export async function GET(request: NextRequest) {
       .select(`
         id, date, time, status,
         patients ( name, email ),
-        therapists ( name, user_id, meeting_link ),
+        therapists ( name, email, user_id, meeting_link ),
         branches ( name, type )
       `)
       .in("status", ["scheduled"]);
@@ -202,6 +210,29 @@ export async function GET(request: NextRequest) {
       patientName: patient.name,
       patientEmail: patient.email,
       therapistName: therapist?.name || "Tu terapeuta",
+      serviceName: "Consulta",
+      date: row.date,
+      time: row.time,
+      modality: isOnline ? "Online" : "Presencial",
+      branchName: branch?.name || "",
+      meetingLink: isOnline ? meetingLink : null,
+    };
+  }
+
+  function toTherapistReminderEmailData(row: AppointmentRow): TherapistReminderEmailData | null {
+    const patient = row.patients;
+    const therapist = row.therapists;
+    const branch = row.branches;
+
+    if (!therapist?.email) return null;
+
+    const isOnline = branch?.type === "online";
+    const meetingLink = therapist.meeting_link || process.env.DEFAULT_MEETING_LINK || null;
+
+    return {
+      therapistName: therapist.name || "Terapeuta",
+      therapistEmail: therapist.email,
+      patientName: patient?.name || "Paciente",
       serviceName: "Consulta",
       date: row.date,
       time: row.time,
@@ -314,6 +345,20 @@ export async function GET(request: NextRequest) {
 
       if (kind === "24h") results.sent24h++;
       if (kind === "1h") results.sent1h++;
+
+      const therapistEmailData = toTherapistReminderEmailData(appt);
+      if (!therapistEmailData) {
+        results.skippedMissingTherapistEmail++;
+      } else {
+        const therapistEmailResult = await sendTherapistReminder(therapistEmailData, hoursLabel);
+        if (therapistEmailResult.error) {
+          results.errors++;
+          results.therapistEmailErrors++;
+        } else {
+          results.therapistEmailSent++;
+        }
+      }
+
       await notifyTherapist(appt, hoursLabel);
     }
   }

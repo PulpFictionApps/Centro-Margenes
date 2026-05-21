@@ -43,6 +43,18 @@ export interface TherapistBookingEmailData {
   googleCalendarUrl?: string | null;
 }
 
+export interface TherapistReminderEmailData {
+  therapistName: string;
+  therapistEmail: string;
+  patientName: string;
+  serviceName: string;
+  date: string;
+  time: string;
+  modality: string;
+  branchName: string;
+  meetingLink?: string | null;
+}
+
 // ─── Date formatting helper ────────────────────────────────────────
 function formatDateES(isoDate: string): string {
   const [y, m, d] = isoDate.split("-").map(Number);
@@ -257,6 +269,39 @@ function therapistBookingHtml(data: TherapistBookingEmailData): string {
   return emailLayout("Nueva Cita Agendada - Centro Márgenes", body);
 }
 
+function therapistReminderHtml(data: TherapistReminderEmailData, hoursBeforeLabel: string): string {
+  const dateFormatted = formatDateES(data.date);
+
+  let details = "";
+  details += detailRow("Paciente", data.patientName);
+  details += detailRow("Servicio", data.serviceName);
+  details += detailRow("Fecha", dateFormatted);
+  details += detailRow("Hora", data.time + " hrs");
+  details += detailRow("Modalidad", data.modality);
+
+  if (data.modality === "Online" && data.meetingLink) {
+    details += detailRow(
+      "Enlace",
+      `<a href="${data.meetingLink}" style="color:#5b2525;text-decoration:underline;">${data.meetingLink}</a>`
+    );
+  } else if (data.modality === "Presencial") {
+    details += detailRow("Lugar", data.branchName);
+  }
+
+  const body = `
+    <h2 style="margin:0 0 8px;font-size:20px;color:#5b2525;font-weight:400;">
+      Recordatorio de cita
+    </h2>
+    <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.6;">
+      Hola <strong>${data.therapistName}</strong>, te recordamos que tienes una cita en <strong>${hoursBeforeLabel}</strong>.
+    </p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #eee;border-radius:6px;padding:16px;">
+      ${details}
+    </table>`;
+
+  return emailLayout("Recordatorio para Terapeuta - Centro Márgenes", body);
+}
+
 // ─── Public send functions ─────────────────────────────────────────
 
 export async function sendAppointmentConfirmation(data: AppointmentEmailData) {
@@ -342,6 +387,37 @@ export async function sendTherapistBookingNotification(data: TherapistBookingEma
     return { error };
   } catch (error) {
     console.error("[Email] Therapist booking notification send exception:", error);
+    return { error };
+  }
+}
+
+export async function sendTherapistReminder(
+  data: TherapistReminderEmailData,
+  hoursBeforeLabel: string
+) {
+  const configError = getEmailConfigError();
+  if (configError) {
+    console.error("[Email] Therapist reminder skipped:", configError);
+    return { error: new Error(configError) };
+  }
+
+  const html = therapistReminderHtml(data, hoursBeforeLabel);
+
+  try {
+    const { error } = await getResend().emails.send({
+      from: FROM_EMAIL,
+      to: data.therapistEmail,
+      subject: `Recordatorio: cita ${hoursBeforeLabel} — ${data.time} hrs`,
+      html,
+    });
+
+    if (error) {
+      console.error("[Email] Therapist reminder send failed:", error);
+    }
+
+    return { error };
+  } catch (error) {
+    console.error("[Email] Therapist reminder send exception:", error);
     return { error };
   }
 }
