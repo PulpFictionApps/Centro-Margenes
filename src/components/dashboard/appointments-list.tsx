@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { format, parseISO, isBefore } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Appointment } from "@/lib/types";
-import { X, CalendarClock, CheckCircle2, UserX, CreditCard, Calendar } from "lucide-react";
+import { X, CalendarClock, CheckCircle2, UserX, CreditCard, Calendar, Trash2 } from "lucide-react";
 
 interface AppointmentsListProps {
   therapistId?: string;
@@ -128,6 +128,18 @@ export function AppointmentsList({ therapistId }: AppointmentsListProps) {
     fetchAppointments();
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm("¿Estás seguro de que deseas eliminar esta cita? Esta acción no se puede deshacer.")) return;
+    setError(null);
+    const response = await fetch(`/api/appointments/${id}`, { method: "DELETE" });
+    if (!response.ok) {
+      const data = await response.json();
+      setError(data.error || "No se pudo eliminar la cita");
+      return;
+    }
+    fetchAppointments();
+  };
+
   const getPaymentLabel = (paymentStatus: string) => {
     switch (paymentStatus) {
       case "paid":
@@ -186,7 +198,7 @@ export function AppointmentsList({ therapistId }: AppointmentsListProps) {
     );
   }
 
-  const renderAppointment = (appointment: AppointmentWithRelations) => (
+  const renderAppointment = (appointment: AppointmentWithRelations, isPast = false) => (
     <div
       key={appointment.id}
       className="border-t border-neutral-200 bg-white px-6 py-5 transition-colors hover:bg-neutral-50/50"
@@ -335,6 +347,16 @@ export function AppointmentsList({ therapistId }: AppointmentsListProps) {
               Marcar reembolso
             </button>
           )}
+
+          {isPast && (
+            <button
+              onClick={() => handleDelete(appointment.id)}
+              className="flex items-center gap-1.5 border-y border-red-300 px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-red-600 transition-colors hover:bg-red-600 hover:text-white"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Eliminar
+            </button>
+          )}
         </div>
 
         {/* Reschedule inline form */}
@@ -420,7 +442,7 @@ export function AppointmentsList({ therapistId }: AppointmentsListProps) {
               : "No hay historial de citas."}
           </div>
         ) : (
-          activeList.map(renderAppointment)
+          activeList.map((a) => renderAppointment(a, activeTab === "past"))
         )}
       </div>
     </div>
