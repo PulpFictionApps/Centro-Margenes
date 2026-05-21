@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/dashboard", "/api/", "/auth/", "/login"],
+        disallow: ["/admin", "/dashboard", "/api/", "/auth/", "/login", "/cancelar", "/evaluar"],
       },
     ],
     sitemap: "https://centromargenes.cl/sitemap.xml",

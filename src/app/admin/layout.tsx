@@ -1,6 +1,11 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { AdminNav } from "@/components/admin/admin-nav";
+
+export const metadata: Metadata = {
+  robots: "noindex, nofollow",
+};
 
 export default async function AdminLayout({
   children,

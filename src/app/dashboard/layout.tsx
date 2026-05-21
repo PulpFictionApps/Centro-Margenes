@@ -1,6 +1,11 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
+
+export const metadata: Metadata = {
+  robots: "noindex, nofollow",
+};
 
 export default async function DashboardLayout({
   children,
