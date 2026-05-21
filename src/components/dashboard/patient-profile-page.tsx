@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Therapist, Patient, ClinicalRecordWithRelations, Appointment } from "@/lib/types";
+import { Therapist, Patient, ClinicalRecordWithRelations, Appointment, Branch, Service } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -45,16 +45,26 @@ export function PatientProfilePage({
   const [selectedRecord, setSelectedRecord] = useState<ClinicalRecordWithRelations | null>(null);
   const [showRecordModal, setShowRecordModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [showScheduleForm, setShowScheduleForm] = useState(false);
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [scheduleMessage, setScheduleMessage] = useState("");
+  const [scheduleForm, setScheduleForm] = useState({
+    date: "",
+    time: "",
+    branch_id: "",
+    treatment_id: "",
+  });
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch clinical records — scoped to this therapist only
+      // Fetch clinical records
       const { data: records } = await supabase
         .from("clinical_records")
         .select("*")
         .eq("patient_id", patient.id)
-        .eq("therapist_id", therapist.id)
         .order("session_date", { ascending: false });
 
       // Fetch appointments
@@ -73,6 +83,20 @@ export function PatientProfilePage({
       setLoading(false);
     }
   }, [supabase, patient.id, therapist.id]);
+
+  useEffect(() => {
+    async function fetchCatalogs() {
+      const [branchRes, serviceRes] = await Promise.all([
+        supabase.from("branches").select("*").order("name"),
+        supabase.from("services").select("*").order("name"),
+      ]);
+
+      setBranches((branchRes.data as Branch[]) ?? []);
+      setServices((serviceRes.data as Service[]) ?? []);
+    }
+
+    fetchCatalogs();
+  }, [supabase]);
 
   useEffect(() => {
     fetchData();
@@ -106,6 +130,45 @@ ${record.observations ? `Observaciones: ${record.observations}` : ""}
       alert("Contenido copiado al portapapeles");
     } catch (error) {
       console.error("Error copying:", error);
+    }
+  };
+
+  const handleScheduleAppointment = async () => {
+    if (!scheduleForm.date || !scheduleForm.time) {
+      setScheduleMessage("Debes indicar fecha y hora.");
+      return;
+    }
+
+    setScheduleLoading(true);
+    setScheduleMessage("");
+
+    try {
+      const response = await fetch("/api/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patient_id: patient.id,
+          date: scheduleForm.date,
+          time: scheduleForm.time,
+          branch_id: scheduleForm.branch_id || null,
+          treatment_id: scheduleForm.treatment_id || null,
+        }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        setScheduleMessage(payload.error || "No se pudo agendar la cita.");
+        return;
+      }
+
+      setScheduleMessage("Cita agendada correctamente.");
+      setShowScheduleForm(false);
+      setScheduleForm({ date: "", time: "", branch_id: "", treatment_id: "" });
+      fetchData();
+    } catch {
+      setScheduleMessage("Error al agendar la cita.");
+    } finally {
+      setScheduleLoading(false);
     }
   };
 
@@ -296,6 +359,75 @@ ${record.observations ? `Observaciones: ${record.observations}` : ""}
                   <span className="text-sm text-neutral-600">Próximas citas</span>
                   <Badge variant="secondary">{pendingAppointments}</Badge>
                 </div>
+              </div>
+
+              <div className="border-t border-neutral-200 pt-4 space-y-3">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setShowScheduleForm((prev) => !prev);
+                    setScheduleMessage("");
+                  }}
+                >
+                  {showScheduleForm ? "Cerrar agendamiento" : "Agendar cita"}
+                </Button>
+
+                {showScheduleForm && (
+                  <div className="space-y-3 rounded-lg border border-neutral-200 p-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        type="date"
+                        value={scheduleForm.date}
+                        onChange={(e) => setScheduleForm((prev) => ({ ...prev, date: e.target.value }))}
+                        className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                      />
+                      <input
+                        type="time"
+                        value={scheduleForm.time}
+                        onChange={(e) => setScheduleForm((prev) => ({ ...prev, time: e.target.value }))}
+                        className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                      />
+                    </div>
+
+                    <select
+                      value={scheduleForm.branch_id}
+                      onChange={(e) => setScheduleForm((prev) => ({ ...prev, branch_id: e.target.value }))}
+                      className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="">Sucursal / modalidad (opcional)</option>
+                      {branches.map((branch) => (
+                        <option key={branch.id} value={branch.id}>
+                          {branch.name} ({branch.type === "online" ? "Online" : "Presencial"})
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={scheduleForm.treatment_id}
+                      onChange={(e) => setScheduleForm((prev) => ({ ...prev, treatment_id: e.target.value }))}
+                      className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="">Servicio (opcional)</option>
+                      {services.map((service) => (
+                        <option key={service.id} value={service.id}>
+                          {service.name}
+                        </option>
+                      ))}
+                    </select>
+
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" onClick={handleScheduleAppointment} disabled={scheduleLoading}>
+                        {scheduleLoading ? "Agendando..." : "Agendar"}
+                      </Button>
+                      {scheduleMessage && (
+                        <span className={`text-xs ${scheduleMessage.includes("Error") || scheduleMessage.includes("No se") ? "text-red-600" : "text-emerald-600"}`}>
+                          {scheduleMessage}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
