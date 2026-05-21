@@ -5,8 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { format, parseISO, isAfter, isBefore } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Appointment } from "@/lib/types";
-import { X, CalendarClock, CheckCircle2, UserX, CreditCard, CalendarPlus } from "lucide-react";
-import { buildGoogleCalendarUrl } from "@/lib/utils";
+import { X, CalendarClock, CheckCircle2, UserX, CreditCard } from "lucide-react";
 
 interface AppointmentsListProps {
   therapistId?: string;
@@ -161,7 +160,7 @@ export function AppointmentsList({ therapistId }: AppointmentsListProps) {
       a.status !== "cancelled" &&
       a.status !== "completed" &&
       a.status !== "no_show" &&
-      isAfter(parseISO(a.date), new Date(now.toDateString()))
+      !isBefore(parseISO(a.date), new Date(now.toDateString()))
   );
   const past = appointments.filter(
     (a) =>
@@ -192,7 +191,7 @@ export function AppointmentsList({ therapistId }: AppointmentsListProps) {
       key={appointment.id}
       className="border-t border-neutral-200 bg-white px-6 py-5 transition-colors hover:bg-neutral-50/50"
     >
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4">
         <div className="space-y-2.5">
           {/* Status + branch */}
           <div className="flex items-center gap-3">
@@ -240,24 +239,9 @@ export function AppointmentsList({ therapistId }: AppointmentsListProps) {
         </div>
 
         {/* Actions */}
-        <div className="flex flex-wrap gap-3 shrink-0">
+        <div className="flex flex-wrap gap-2">
           {appointment.status === "scheduled" && (
             <>
-              <a
-                href={buildGoogleCalendarUrl({
-                  title: `Cita${appointment.patients?.name ? ` — ${appointment.patients.name}` : ""}`,
-                  date: appointment.date,
-                  time: appointment.time,
-                  durationMinutes: 60,
-                  location: appointment.branches?.name ?? "",
-                })}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1.5 border-y border-blue-300 px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-blue-700 transition-colors hover:bg-blue-600 hover:text-white"
-              >
-                <CalendarPlus className="h-3.5 w-3.5" />
-                Google Calendar
-              </a>
               <button
                 onClick={() => handleStatusChange(appointment.id, "completed")}
                 className="flex items-center gap-1.5 border-y border-brand px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-brand transition-colors hover:bg-brand hover:text-white"
