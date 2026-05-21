@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
     // 4. Fetch related data for confirmation email (non-blocking)
     // Include user_id in therapist query so we don't need a separate lookup
     const [therapistRes, serviceRes, branchRes] = await Promise.all([
-      supabaseAdmin.from("therapists").select("name, user_id, email").eq("id", therapistId).single(),
+      supabaseAdmin.from("therapists").select("name, user_id, email, meeting_link").eq("id", therapistId).single(),
       serviceId
         ? supabase.from("services").select("name").eq("id", serviceId).single()
         : Promise.resolve({ data: null }),
@@ -129,6 +129,10 @@ export async function POST(request: NextRequest) {
     ]);
 
     const isOnline = branchRes.data?.type === "online";
+    const therapistMeetingLink = (therapistRes.data as { meeting_link?: string | null } | null)?.meeting_link ?? null;
+    const meetingLink = isOnline
+      ? (therapistMeetingLink || process.env.DEFAULT_MEETING_LINK || null)
+      : null;
     const cancelToken = appointmentRow?.cancellation_token;
 
     // Await confirmation email so serverless execution does not end before dispatch.
@@ -141,7 +145,7 @@ export async function POST(request: NextRequest) {
       time,
       modality: isOnline ? "Online" : "Presencial",
       branchName: branchRes.data?.name || "",
-      meetingLink: isOnline ? (process.env.DEFAULT_MEETING_LINK || null) : null,
+      meetingLink,
       cancellationToken: cancelToken || undefined,
     });
 
@@ -151,6 +155,14 @@ export async function POST(request: NextRequest) {
 
     const therapistEmail = (therapistRes.data as { email?: string } | null)?.email?.trim().toLowerCase();
     if (therapistEmail) {
+      const gcalUrl = buildGoogleCalendarUrl({
+        title: `Cita — ${patient.name.trim()}${serviceRes.data?.name ? ` (${serviceRes.data.name})` : ""}`,
+        date,
+        time,
+        durationMinutes: 60,
+        location: branchRes.data?.name ?? "",
+      });
+
       const therapistBookingEmail = await sendTherapistBookingNotification({
         therapistName: therapistRes.data?.name || "Terapeuta",
         therapistEmail,
@@ -161,6 +173,7 @@ export async function POST(request: NextRequest) {
         time,
         modality: isOnline ? "Online" : "Presencial",
         branchName: branchRes.data?.name || "",
+        googleCalendarUrl: gcalUrl,
       });
 
       if (therapistBookingEmail.error) {

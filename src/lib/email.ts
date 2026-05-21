@@ -41,6 +41,7 @@ export interface TherapistBookingEmailData {
   time: string;
   modality: string;
   branchName: string;
+  googleCalendarUrl?: string | null;
 }
 
 // ─── Date formatting helper ────────────────────────────────────────
@@ -219,7 +220,14 @@ function therapistBookingHtml(data: TherapistBookingEmailData): string {
     details += detailRow("Lugar", data.branchName);
   }
 
-  const body = `
+  if (data.googleCalendarUrl) {
+    details += detailRow(
+      "Calendar",
+      `<a href="${data.googleCalendarUrl}" style="color:#5b2525;text-decoration:underline;">Agregar a Google Calendar</a>`
+    );
+  }
+
+  let body = `
     <h2 style="margin:0 0 8px;font-size:20px;color:#5b2525;font-weight:400;">
       Nueva cita agendada
     </h2>
@@ -232,6 +240,20 @@ function therapistBookingHtml(data: TherapistBookingEmailData): string {
     <p style="margin:24px 0 0;font-size:14px;color:#777;line-height:1.6;">
       Revisa tu panel para más detalles y seguimiento de esta reserva.
     </p>`;
+
+  if (data.googleCalendarUrl) {
+    const gcalUrl = data.googleCalendarUrl;
+    body += `
+    <div style="margin:24px 0 0;text-align:center;">
+      <a href="${gcalUrl}" style="display:inline-block;padding:12px 28px;background-color:#5b2525;color:#EDE6CA;text-decoration:none;font-size:13px;letter-spacing:0.05em;text-transform:uppercase;">
+        Agregar a Google Calendar
+      </a>
+      <p style="margin:8px 0 0;font-size:12px;color:#999;">
+        Si el botón no funciona, copia y pega este enlace en tu navegador:<br/>
+        <a href="${gcalUrl}" style="color:#5b2525;">${gcalUrl}</a>
+      </p>
+    </div>`;
+  }
 
   return emailLayout("Nueva Cita Agendada - Centro Márgenes", body);
 }

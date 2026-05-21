@@ -35,7 +35,18 @@ export async function PUT(request: NextRequest) {
   if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
 
   const body = await request.json();
-  const { id, name, email, bio, specialties, offers_online, offers_in_person, role, active } = body;
+  const {
+    id,
+    name,
+    email,
+    bio,
+    specialties,
+    offers_online,
+    offers_in_person,
+    meeting_link,
+    role,
+    active,
+  } = body;
 
   if (!id) return NextResponse.json({ error: "ID requerido" }, { status: 400 });
   if (!name) return NextResponse.json({ error: "El nombre es obligatorio" }, { status: 400 });
@@ -52,6 +63,7 @@ export async function PUT(request: NextRequest) {
     specialties: specialties ?? [],
     offers_online: offers_online ?? false,
     offers_in_person: offers_in_person ?? true,
+    meeting_link: meeting_link?.trim() || null,
   };
 
   if (role !== undefined) updatePayload.role = role;
@@ -73,7 +85,16 @@ export async function POST(request: NextRequest) {
   if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
 
   const body = await request.json();
-  const { name, email, password, bio, specialties, offers_online, offers_in_person } = body;
+  const {
+    name,
+    email,
+    password,
+    bio,
+    specialties,
+    offers_online,
+    offers_in_person,
+    meeting_link,
+  } = body;
 
   if (!name || !email || !password) {
     return NextResponse.json(
@@ -136,6 +157,7 @@ export async function POST(request: NextRequest) {
     specialties: specialties ?? [],
     offers_online: offers_online ?? false,
     offers_in_person: offers_in_person ?? true,
+    meeting_link: meeting_link?.trim() || null,
     active: true,
     role: "therapist",
   });

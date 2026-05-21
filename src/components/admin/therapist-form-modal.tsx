@@ -28,6 +28,7 @@ export function TherapistFormModal({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [bio, setBio] = useState("");
+  const [meetingLink, setMeetingLink] = useState("");
   const [specialtiesText, setSpecialtiesText] = useState("");
   const [offersOnline, setOffersOnline] = useState(false);
   const [offersInPerson, setOffersInPerson] = useState(true);
@@ -41,6 +42,7 @@ export function TherapistFormModal({
       setEmail(therapist.email);
       setPassword("");
       setBio(therapist.bio);
+      setMeetingLink(therapist.meeting_link ?? "");
       setSpecialtiesText(therapist.specialties.join(", "));
       setOffersOnline(therapist.offers_online);
       setOffersInPerson(therapist.offers_in_person);
@@ -49,6 +51,7 @@ export function TherapistFormModal({
       setEmail("");
       setPassword("");
       setBio("");
+      setMeetingLink("");
       setSpecialtiesText("");
       setOffersOnline(false);
       setOffersInPerson(true);
@@ -76,6 +79,7 @@ export function TherapistFormModal({
             name: name.trim(),
             email: email.trim(),
             bio: bio.trim(),
+            meeting_link: meetingLink.trim() || null,
             specialties,
             offers_online: offersOnline,
             offers_in_person: offersInPerson,
@@ -94,6 +98,7 @@ export function TherapistFormModal({
             email: email.trim(),
             password,
             bio: bio.trim(),
+            meeting_link: meetingLink.trim() || null,
             specialties,
             offers_online: offersOnline,
             offers_in_person: offersInPerson,
@@ -189,6 +194,20 @@ export function TherapistFormModal({
               onChange={(e) => setBio(e.target.value)}
               rows={3}
               className="mt-1.5 w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-brand outline-none transition-colors focus:border-brand resize-none"
+            />
+          </div>
+
+          {/* Specialties */}
+          <div>
+            <label className="text-[11px] uppercase tracking-[0.2em] text-neutral-500">
+              Link Google Meet
+            </label>
+            <input
+              type="url"
+              value={meetingLink}
+              onChange={(e) => setMeetingLink(e.target.value)}
+              placeholder="https://meet.google.com/xxx-xxxx-xxx"
+              className="mt-1.5 w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-brand outline-none transition-colors focus:border-brand"
             />
           </div>
 

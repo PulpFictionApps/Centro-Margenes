@@ -13,7 +13,7 @@ type AppointmentRow = {
   date: string;
   time: string;
   patients: { name: string; email: string } | null;
-  therapists: { name: string; user_id?: string } | null;
+  therapists: { name: string; user_id?: string; meeting_link?: string | null } | null;
   branches: { name: string; type: string } | null;
 };
 
@@ -22,7 +22,7 @@ type SupabaseAppointmentRow = {
   date: string;
   time: string;
   patients: Array<{ name: string; email: string }> | null;
-  therapists: Array<{ name: string; user_id?: string }> | null;
+  therapists: Array<{ name: string; user_id?: string; meeting_link?: string | null }> | null;
   branches: Array<{ name: string; type: string }> | null;
 };
 
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
       .select(`
         id, date, time, status,
         patients ( name, email ),
-        therapists ( name, user_id ),
+        therapists ( name, user_id, meeting_link ),
         branches ( name, type )
       `)
       .in("status", ["scheduled"])
@@ -139,6 +139,7 @@ export async function GET(request: NextRequest) {
     if (!patient?.email) return null;
 
     const isOnline = branch?.type === "online";
+    const meetingLink = therapist?.meeting_link || process.env.DEFAULT_MEETING_LINK || null;
 
     return {
       patientName: patient.name,
@@ -149,7 +150,7 @@ export async function GET(request: NextRequest) {
       time: row.time,
       modality: isOnline ? "Online" : "Presencial",
       branchName: branch?.name || "",
-      meetingLink: isOnline ? (process.env.DEFAULT_MEETING_LINK || null) : null,
+      meetingLink: isOnline ? meetingLink : null,
     };
   }
 

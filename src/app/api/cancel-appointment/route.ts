@@ -51,6 +51,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const appointmentDateTime = new Date(`${appointment.date}T${appointment.time}`);
+    const msUntilAppointment = appointmentDateTime.getTime() - Date.now();
+    const minMsForCancellation = 24 * 60 * 60 * 1000;
+
+    if (Number.isNaN(appointmentDateTime.getTime())) {
+      return NextResponse.json(
+        { error: "No se pudo validar la fecha de la cita." },
+        { status: 500 }
+      );
+    }
+
+    if (msUntilAppointment < minMsForCancellation) {
+      return NextResponse.json(
+        { error: "Solo puedes cancelar con al menos 24 horas de anticipación." },
+        { status: 400 }
+      );
+    }
+
     // Cancel the appointment — this frees the slot via the partial unique index
     const { error } = await supabase
       .from("appointments")

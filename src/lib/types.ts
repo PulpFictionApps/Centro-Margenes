@@ -7,6 +7,7 @@ export type Therapist = {
   user_id: string;
   name: string;
   email: string;
+  meeting_link: string | null;
   bio: string;
   photo_url: string | null;
   specialties: string[];
@@ -60,7 +61,7 @@ export type Availability = {
   start_time: string; // "09:00"
   end_time: string; // "17:00"
   slot_duration: number; // minutes
-  modality: "online" | "in_person" | "both";
+  modality?: "online" | "in_person" | "both" | null;
   created_at: string;
 };
 
