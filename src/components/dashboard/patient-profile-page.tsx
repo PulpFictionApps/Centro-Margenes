@@ -51,6 +51,10 @@ export function PatientProfilePage({
   const [scheduleLoading, setScheduleLoading] = useState(false);
   const [scheduleMessage, setScheduleMessage] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [repeatWeekly, setRepeatWeekly] = useState(false);
+  const [repeatMode, setRepeatMode] = useState<"count" | "until" | "forever">("count");
+  const [repeatWeeks, setRepeatWeeks] = useState(12);
+  const [repeatUntil, setRepeatUntil] = useState("");
   const [scheduleForm, setScheduleForm] = useState({
     date: "",
     time: "",
@@ -140,6 +144,11 @@ ${record.observations ? `Observaciones: ${record.observations}` : ""}
       return;
     }
 
+    if (repeatWeekly && repeatMode === "until" && !repeatUntil) {
+      setScheduleMessage("Debes indicar la fecha límite de repetición.");
+      return;
+    }
+
     setScheduleLoading(true);
     setScheduleMessage("");
 
@@ -153,6 +162,15 @@ ${record.observations ? `Observaciones: ${record.observations}` : ""}
           time: scheduleForm.time,
           branch_id: scheduleForm.branch_id || null,
           service_id: scheduleForm.treatment_id || null,
+          repeat_weekly: repeatWeekly,
+          repeat_weeks: repeatWeekly
+            ? repeatMode === "forever"
+              ? 52
+              : repeatMode === "count"
+                ? repeatWeeks
+                : 0
+            : 0,
+          repeat_until: repeatWeekly && repeatMode === "until" ? repeatUntil : null,
         }),
       });
 
@@ -162,9 +180,21 @@ ${record.observations ? `Observaciones: ${record.observations}` : ""}
         return;
       }
 
-      setScheduleMessage("Cita agendada correctamente.");
+      if (payload.created_count > 1 || (payload.skipped_conflicts?.length ?? 0) > 0) {
+        const created = payload.created_count ?? 0;
+        const skipped = payload.skipped_conflicts?.length ?? 0;
+        setScheduleMessage(
+          `Citas creadas: ${created}. ${skipped > 0 ? `Conflictos omitidos: ${skipped}.` : ""}`
+        );
+      } else {
+        setScheduleMessage("Cita agendada correctamente.");
+      }
       setShowScheduleForm(false);
       setScheduleForm({ date: "", time: "", branch_id: "", treatment_id: "" });
+      setRepeatWeekly(false);
+      setRepeatMode("count");
+      setRepeatWeeks(12);
+      setRepeatUntil("");
       fetchData();
     } catch {
       setScheduleMessage("Error al agendar la cita.");
@@ -456,6 +486,50 @@ ${record.observations ? `Observaciones: ${record.observations}` : ""}
                         </option>
                       ))}
                     </select>
+
+                    <label className="flex items-center gap-2 text-sm text-neutral-600">
+                      <input
+                        type="checkbox"
+                        checked={repeatWeekly}
+                        onChange={(e) => setRepeatWeekly(e.target.checked)}
+                      />
+                      Repetir semanalmente
+                    </label>
+
+                    {repeatWeekly && (
+                      <div className="grid gap-3 rounded-md border border-neutral-200 p-3">
+                        <select
+                          value={repeatMode}
+                          onChange={(e) => setRepeatMode(e.target.value as "count" | "until" | "forever")}
+                          className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                        >
+                          <option value="count">Por cantidad de semanas</option>
+                          <option value="until">Hasta una fecha</option>
+                          <option value="forever">Largo plazo (52 semanas)</option>
+                        </select>
+
+                        {repeatMode === "count" && (
+                          <input
+                            type="number"
+                            min={1}
+                            max={104}
+                            value={repeatWeeks}
+                            onChange={(e) => setRepeatWeeks(Math.max(1, Math.min(104, Number(e.target.value) || 1)))}
+                            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                            placeholder="Cantidad de semanas"
+                          />
+                        )}
+
+                        {repeatMode === "until" && (
+                          <input
+                            type="date"
+                            value={repeatUntil}
+                            onChange={(e) => setRepeatUntil(e.target.value)}
+                            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                          />
+                        )}
+                      </div>
+                    )}
 
                     <div className="flex items-center gap-2">
                       <Button size="sm" onClick={handleScheduleAppointment} disabled={scheduleLoading}>
