@@ -151,7 +151,7 @@ ${record.observations ? `Observaciones: ${record.observations}` : ""}
           date: scheduleForm.date,
           time: scheduleForm.time,
           branch_id: scheduleForm.branch_id || null,
-          treatment_id: scheduleForm.treatment_id || null,
+          service_id: scheduleForm.treatment_id || null,
         }),
       });
 

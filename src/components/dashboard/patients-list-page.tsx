@@ -203,7 +203,7 @@ export function PatientsListPage({ therapist }: PatientsListPageProps) {
             date: initialAppointment.date,
             time: initialAppointment.time,
             branch_id: initialAppointment.branch_id || null,
-            treatment_id: initialAppointment.treatment_id || null,
+            service_id: initialAppointment.treatment_id || null,
             repeat_weekly: repeatWeekly,
             repeat_weeks: repeatWeekly
               ? repeatMode === "forever"
