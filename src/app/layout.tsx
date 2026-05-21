@@ -91,11 +91,11 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.json",
   icons: {
+    shortcut: [{ url: "/favicon.ico" }],
     icon: [
-      { url: "/IconosMargenes/favicon.ico", sizes: "any" },
-      { url: "/IconosMargenes/favicon-16x16.png", sizes: "16x16", type: "image/png" },
       { url: "/IconosMargenes/favicon-32x32.png", sizes: "32x32", type: "image/png" },
       { url: "/IconosMargenes/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+      { url: "/IconosMargenes/android-icon-192x192.png", sizes: "192x192", type: "image/png" },
     ],
     apple: [
       { url: "/IconosMargenes/apple-icon-57x57.png", sizes: "57x57" },
