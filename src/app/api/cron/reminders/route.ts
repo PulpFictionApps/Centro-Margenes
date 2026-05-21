@@ -7,6 +7,7 @@ import { sendPushToUser } from "@/lib/push";
 export const dynamic = 'force-dynamic';
 
 const REMINDER_TIMEZONE = "America/Santiago";
+const REMINDER_TOLERANCE_MINUTES = 10;
 
 type ReminderKind = "24h" | "1h";
 
@@ -115,12 +116,12 @@ export async function GET(request: NextRequest) {
   }
 
   // ── Helper: compute window boundaries ────────────────────────────
-  // We look for appointments whose date+time falls within a 30-min
+  // We look for appointments whose date+time falls within a tolerance
   // window around the target offset (24h or 1h from now).
   function getWindow(hoursAhead: number) {
     const center = new Date(now.getTime() + hoursAhead * 60 * 60 * 1000);
-    const from = new Date(center.getTime() - 15 * 60 * 1000);
-    const to = new Date(center.getTime() + 15 * 60 * 1000);
+    const from = new Date(center.getTime() - REMINDER_TOLERANCE_MINUTES * 60 * 1000);
+    const to = new Date(center.getTime() + REMINDER_TOLERANCE_MINUTES * 60 * 1000);
     return { from, to };
   }
 
@@ -316,6 +317,7 @@ export async function GET(request: NextRequest) {
     ok: true,
     ...results,
     timezone: REMINDER_TIMEZONE,
+    toleranceMinutes: REMINDER_TOLERANCE_MINUTES,
     checkedAt: now.toISOString(),
   });
 }
