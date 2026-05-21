@@ -37,7 +37,6 @@ export async function POST(request: NextRequest) {
       patient_id,
       date,
       time,
-      service_id,
       treatment_id,
       branch_id,
       notes,
