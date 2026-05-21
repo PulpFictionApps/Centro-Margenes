@@ -49,8 +49,7 @@ export async function GET(
       return NextResponse.json({ error: "Paciente no encontrado" }, { status: 404 });
     }
 
-    // Check access: allow admins, therapists with appointments, or therapist-owned links.
-    const isAdmin = therapist.role === "admin" || therapist.role === "super_admin";
+    // Check access: therapists with appointments or therapist-owned links only.
     const hasAppointmentAccess = patient.appointments?.some(
       (a: { therapist_id: string }) => a.therapist_id === therapist.id
     );
@@ -62,7 +61,7 @@ export async function GET(
       .eq("patient_id", params.id)
       .maybeSingle();
 
-    const hasAccess = isAdmin || hasAppointmentAccess || !!ownedLink;
+    const hasAccess = hasAppointmentAccess || !!ownedLink;
 
     if (!hasAccess) {
       return NextResponse.json({ error: "No tienes acceso a este paciente" }, { status: 403 });
@@ -139,7 +138,6 @@ export async function PATCH(
       return NextResponse.json({ error: "Paciente no encontrado" }, { status: 404 });
     }
 
-    const isAdmin = therapist.role === "admin" || therapist.role === "super_admin";
     const hasAppointmentAccess = existingPatient.appointments?.some(
       (a: { therapist_id: string }) => a.therapist_id === therapist.id
     );
@@ -151,7 +149,7 @@ export async function PATCH(
       .eq("patient_id", params.id)
       .maybeSingle();
 
-    const hasAccess = isAdmin || hasAppointmentAccess || !!ownedLink;
+    const hasAccess = hasAppointmentAccess || !!ownedLink;
 
     if (!hasAccess) {
       return NextResponse.json({ error: "No tienes acceso a este paciente" }, { status: 403 });
