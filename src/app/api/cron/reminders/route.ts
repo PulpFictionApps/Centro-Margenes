@@ -17,6 +17,15 @@ type AppointmentRow = {
   branches: { name: string; type: string } | null;
 };
 
+type SupabaseAppointmentRow = {
+  id: string;
+  date: string;
+  time: string;
+  patients: Array<{ name: string; email: string }> | null;
+  therapists: Array<{ name: string; user_id?: string }> | null;
+  branches: Array<{ name: string; type: string }> | null;
+};
+
 /**
  * GET /api/cron/reminders?secret=<CRON_SECRET>
  *
@@ -101,15 +110,24 @@ export async function GET(request: NextRequest) {
     const { data } = await query;
     if (!data) return [];
 
+    const normalized = (data as SupabaseAppointmentRow[]).map((row) => ({
+      id: row.id,
+      date: row.date,
+      time: row.time,
+      patients: row.patients?.[0] ?? null,
+      therapists: row.therapists?.[0] ?? null,
+      branches: row.branches?.[0] ?? null,
+    }));
+
     // If cross-midnight, filter in JS
     if (fromDate !== toDate) {
-      return (data as AppointmentRow[]).filter((a) => {
+      return normalized.filter((a) => {
         const dt = new Date(`${a.date}T${a.time}`);
         return dt >= from && dt <= to;
       });
     }
 
-    return data as AppointmentRow[];
+    return normalized;
   }
 
   // ── Build email data from appointment row ────────────────────────
