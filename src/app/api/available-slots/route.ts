@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
   const supabase = createServerSupabaseClient();
 
   // Fetch in parallel: availability, service duration, booked appointments
-  const [availabilityRes, serviceRes, appointmentsRes] = await Promise.all([
+  const [availabilityRes, serviceRes, appointmentsRes, overridesRes] = await Promise.all([
     supabase
       .from("availability")
       .select("*")
@@ -53,6 +53,11 @@ export async function GET(request: NextRequest) {
       .eq("therapist_id", therapistId)
       .eq("date", date)
       .neq("status", "cancelled"),
+    supabase
+      .from("availability_overrides")
+      .select("start_time, end_time, slot_duration, modality, override_type")
+      .eq("therapist_id", therapistId)
+      .eq("date", date),
   ]);
 
   if (availabilityRes.error) {
@@ -63,9 +68,13 @@ export async function GET(request: NextRequest) {
   }
 
   const availability = (availabilityRes.data as Availability[]) ?? [];
-  if (availability.length === 0) {
-    return NextResponse.json([]);
-  }
+  const overrides = (overridesRes.data ?? []) as Array<{
+    start_time: string;
+    end_time: string;
+    slot_duration?: number | null;
+    modality?: string | null;
+    override_type: "add" | "block";
+  }>;
 
   // Filter blocks by requested modality
   const filteredAvailability = modality
@@ -75,14 +84,35 @@ export async function GET(request: NextRequest) {
       })
     : availability;
 
-  if (filteredAvailability.length === 0) {
+  const relevantOverrides = modality
+    ? overrides.filter((ov) => {
+        const m = ov.modality ?? "both";
+        return m === "both" || m === modality;
+      })
+    : overrides;
+
+  const addOverrides = relevantOverrides.filter((ov) => ov.override_type === "add");
+  const blockOverrides = relevantOverrides.filter((ov) => ov.override_type === "block");
+
+  type SlotBlock = {
+    start_time: string;
+    end_time: string;
+    slot_duration?: number | null;
+  };
+
+  const slotBlocks: SlotBlock[] = [
+    ...filteredAvailability,
+    ...addOverrides,
+  ];
+
+  if (slotBlocks.length === 0) {
     return NextResponse.json([]);
   }
 
   // Service duration — fall back to slot_duration from availability if service not found
   const serviceDuration =
     (serviceRes.data as { duration_minutes: number } | null)?.duration_minutes ??
-    filteredAvailability[0].slot_duration ??
+    slotBlocks[0].slot_duration ??
     60;
 
   // Build occupied minute ranges from booked appointments.
@@ -100,12 +130,18 @@ export async function GET(request: NextRequest) {
   // Generate candidate slots and filter out overlapping ones
   const slots: string[] = [];
 
-  for (const av of filteredAvailability) {
-    const [startH, startM] = av.start_time.split(":").map(Number);
-    const [endH, endM] = av.end_time.split(":").map(Number);
+  const blockRanges: [number, number][] = blockOverrides.map((ov) => {
+    const [startH, startM] = ov.start_time.split(":").map(Number);
+    const [endH, endM] = ov.end_time.split(":").map(Number);
+    return [startH * 60 + startM, endH * 60 + endM];
+  });
+
+  for (const block of slotBlocks) {
+    const [startH, startM] = block.start_time.split(":").map(Number);
+    const [endH, endM] = block.end_time.split(":").map(Number);
     const windowStart = startH * 60 + startM;
     const windowEnd = endH * 60 + endM;
-    const step = 60; // Always 1-hour blocks
+    const step = Math.max(5, block.slot_duration ?? 60);
 
     for (
       let slotStart = windowStart;
@@ -119,7 +155,11 @@ export async function GET(request: NextRequest) {
         ([occStart, occEnd]) => slotStart < occEnd && slotEnd > occStart
       );
 
-      if (!overlaps) {
+      const blocked = blockRanges.some(
+        ([blockStart, blockEnd]) => slotStart < blockEnd && slotEnd > blockStart
+      );
+
+      if (!overlaps && !blocked) {
         const hh = String(Math.floor(slotStart / 60)).padStart(2, "0");
         const mm = String(slotStart % 60).padStart(2, "0");
         slots.push(`${hh}:${mm}`);
@@ -127,6 +167,5 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  slots.sort();
-  return NextResponse.json(slots);
+  return NextResponse.json(Array.from(new Set(slots)).sort());
 }

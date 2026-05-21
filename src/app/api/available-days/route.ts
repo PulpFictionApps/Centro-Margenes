@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
   const workingDayNumbers = new Set(relevantBlocks.map((a: { day_of_week: number }) => a.day_of_week));
 
   if (workingDayNumbers.size === 0) {
-    return NextResponse.json([]);
+    // Continue; date-specific overrides may still open one-off availability.
   }
 
   // Build list of dates in next 60 days that fall on working day_of_week
@@ -55,5 +55,39 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.json(availableDates);
+  const lastDate = availableDates[availableDates.length - 1] ?? (() => {
+    const d = new Date(today);
+    d.setDate(today.getDate() + 60);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  })();
+
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(
+    today.getDate()
+  ).padStart(2, "0")}`;
+
+  const { data: overrides } = await supabase
+    .from("availability_overrides")
+    .select("date, override_type, modality")
+    .eq("therapist_id", therapistId)
+    .gte("date", todayStr)
+    .lte("date", lastDate);
+
+  const relevantOverrides = modality
+    ? (overrides ?? []).filter((o: { modality?: string }) => {
+        const m = o.modality ?? "both";
+        return m === "both" || m === modality;
+      })
+    : (overrides ?? []);
+
+  const merged = new Set(availableDates);
+  for (const ov of relevantOverrides) {
+    if (ov.override_type === "add") {
+      merged.add(ov.date);
+    }
+  }
+
+  return NextResponse.json(Array.from(merged).sort());
 }

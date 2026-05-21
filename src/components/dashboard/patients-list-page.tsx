@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type FormEvent } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Therapist, Patient } from "@/lib/types";
@@ -14,6 +14,7 @@ import {
   Phone,
   Mail,
   MessageCircle,
+  Plus,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
@@ -36,6 +37,16 @@ export function PatientsListPage({ therapist }: PatientsListPageProps) {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<"all" | "active" | "inactive">("all");
   const [loading, setLoading] = useState(true);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createMessage, setCreateMessage] = useState("");
+  const [newPatient, setNewPatient] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    birthdate: "",
+    document: "",
+  });
 
   const supabase = createClient();
 
@@ -56,24 +67,21 @@ export function PatientsListPage({ therapist }: PatientsListPageProps) {
               .eq("therapist_id", therapist.id)
               .order("date", { ascending: false });
 
-            const lastCompleted = appointments?.find((a) => a.status === "completed");
+            const lastAppt = appointments?.[0];
             const nextAppt = appointments?.find(
-              (a) => new Date(a.date) >= new Date() && a.status === "scheduled"
+              (a) => new Date(a.date) > new Date() && a.status === "scheduled"
             );
 
             const completedCount = appointments?.filter(
               (a) => a.status === "completed"
             ).length || 0;
 
-            // Active = has a future scheduled appointment OR has completed sessions
-            const isActive = !!nextAppt || completedCount > 0;
-
             return {
               ...patient,
-              last_appointment: lastCompleted?.date,
+              last_appointment: lastAppt?.date,
               next_appointment: nextAppt?.date,
               total_sessions: completedCount,
-              active: isActive,
+              active: true, // Can be extended with actual active status
             };
           })
         );
@@ -121,6 +129,40 @@ export function PatientsListPage({ therapist }: PatientsListPageProps) {
     }
   };
 
+  const handleCreatePatient = async (e: FormEvent) => {
+    e.preventDefault();
+    setCreating(true);
+    setCreateMessage("");
+
+    try {
+      const response = await fetch("/api/patients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newPatient),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        setCreateMessage(result.error || "No se pudo crear el paciente");
+        return;
+      }
+
+      setCreateMessage(result.message || "Paciente agregado correctamente.");
+      setNewPatient({
+        name: "",
+        email: "",
+        phone: "",
+        birthdate: "",
+        document: "",
+      });
+      await fetchPatients();
+    } catch {
+      setCreateMessage("Error al guardar el paciente.");
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -131,7 +173,75 @@ export function PatientsListPage({ therapist }: PatientsListPageProps) {
             Base de datos centralizada de tus pacientes
           </p>
         </div>
+        <Button
+          onClick={() => {
+            setShowCreateForm((prev) => !prev);
+            setCreateMessage("");
+          }}
+          className="gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          Agregar paciente
+        </Button>
       </div>
+
+      {showCreateForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Nuevo paciente propio</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form className="grid gap-4 md:grid-cols-2" onSubmit={handleCreatePatient}>
+              <Input
+                required
+                placeholder="Nombre completo"
+                value={newPatient.name}
+                onChange={(e) => setNewPatient((prev) => ({ ...prev, name: e.target.value }))}
+              />
+              <Input
+                required
+                type="email"
+                placeholder="Correo"
+                value={newPatient.email}
+                onChange={(e) => setNewPatient((prev) => ({ ...prev, email: e.target.value }))}
+              />
+              <Input
+                required
+                placeholder="Teléfono"
+                value={newPatient.phone}
+                onChange={(e) => setNewPatient((prev) => ({ ...prev, phone: e.target.value }))}
+              />
+              <Input
+                placeholder="Documento (opcional)"
+                value={newPatient.document}
+                onChange={(e) => setNewPatient((prev) => ({ ...prev, document: e.target.value }))}
+              />
+              <Input
+                type="date"
+                value={newPatient.birthdate}
+                onChange={(e) => setNewPatient((prev) => ({ ...prev, birthdate: e.target.value }))}
+              />
+
+              <div className="md:col-span-2 flex items-center gap-3">
+                <Button type="submit" disabled={creating}>
+                  {creating ? "Guardando..." : "Guardar paciente"}
+                </Button>
+                {createMessage && (
+                  <span
+                    className={`text-sm ${
+                      createMessage.toLowerCase().includes("error")
+                        ? "text-red-600"
+                        : "text-emerald-600"
+                    }`}
+                  >
+                    {createMessage}
+                  </span>
+                )}
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Search and Filters */}
       <Card>

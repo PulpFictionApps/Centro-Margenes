@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Availability } from "@/lib/types";
+import type { Availability, AvailabilityOverride, AvailabilityOverrideType } from "@/lib/types";
 
 const dayLabels = [
   "Domingo",
@@ -43,6 +43,18 @@ export function AvailabilityEditor({ therapistId }: AvailabilityEditorProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [overrides, setOverrides] = useState<AvailabilityOverride[]>([]);
+  const [overrideSaving, setOverrideSaving] = useState(false);
+  const [overrideMessage, setOverrideMessage] = useState("");
+  const [newOverride, setNewOverride] = useState({
+    date: "",
+    start_time: "09:00",
+    end_time: "13:00",
+    slot_duration: 50,
+    modality: "both" as ModalityOption,
+    override_type: "add" as AvailabilityOverrideType,
+    note: "",
+  });
 
   useEffect(() => {
     if (!therapistId) {
@@ -53,12 +65,15 @@ export function AvailabilityEditor({ therapistId }: AvailabilityEditorProps) {
     async function fetchAvailability() {
       try {
         const supabase = createClient();
-        const { data } = await supabase
-          .from("availability")
-          .select("*")
-          .eq("therapist_id", therapistId)
-          .order("day_of_week")
-          .order("start_time");
+        const [{ data }, overridesRes] = await Promise.all([
+          supabase
+            .from("availability")
+            .select("*")
+            .eq("therapist_id", therapistId)
+            .order("day_of_week")
+            .order("start_time"),
+          fetch("/api/availability-overrides"),
+        ]);
 
         const mapped =
           (data as Availability[])?.map((a) => ({
@@ -72,6 +87,11 @@ export function AvailabilityEditor({ therapistId }: AvailabilityEditorProps) {
 
         setSlots(mapped);
         setEnabledDays(new Set(mapped.map((s) => s.day_of_week)));
+
+        if (overridesRes.ok) {
+          const payload = await overridesRes.json();
+          setOverrides((payload.overrides ?? []) as AvailabilityOverride[]);
+        }
       } catch {
         // silently fail
       } finally {
@@ -146,6 +166,73 @@ export function AvailabilityEditor({ therapistId }: AvailabilityEditorProps) {
       setMessage("Error al guardar. Inténtalo de nuevo.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleCreateOverride = async () => {
+    if (!newOverride.date) {
+      setOverrideMessage("Debes seleccionar una fecha.");
+      return;
+    }
+
+    setOverrideSaving(true);
+    setOverrideMessage("");
+
+    try {
+      const response = await fetch("/api/availability-overrides", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newOverride),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        setOverrideMessage(payload.error || "Error al crear excepción.");
+        return;
+      }
+
+      setOverrides((prev) => {
+        const next = [...prev, payload.override as AvailabilityOverride];
+        next.sort((a, b) => {
+          if (a.date !== b.date) return a.date.localeCompare(b.date);
+          return a.start_time.localeCompare(b.start_time);
+        });
+        return next;
+      });
+      setOverrideMessage("Excepción creada correctamente.");
+      setNewOverride({
+        date: "",
+        start_time: "09:00",
+        end_time: "13:00",
+        slot_duration: 50,
+        modality: "both",
+        override_type: "add",
+        note: "",
+      });
+    } catch {
+      setOverrideMessage("Error al crear excepción.");
+    } finally {
+      setOverrideSaving(false);
+    }
+  };
+
+  const handleDeleteOverride = async (id: string) => {
+    setOverrideMessage("");
+    try {
+      const response = await fetch(`/api/availability-overrides?id=${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const payload = await response.json();
+        setOverrideMessage(payload.error || "No se pudo eliminar la excepción.");
+        return;
+      }
+
+      setOverrides((prev) => prev.filter((ov) => ov.id !== id));
+      setOverrideMessage("Excepción eliminada.");
+    } catch {
+      setOverrideMessage("Error al eliminar excepción.");
     }
   };
 
@@ -319,6 +406,153 @@ export function AvailabilityEditor({ therapistId }: AvailabilityEditorProps) {
             {message}
           </p>
         )}
+      </div>
+
+      <div className="border-t border-neutral-200 bg-white p-6 space-y-4">
+        <div>
+          <h3 className="font-playfair text-xl text-brand">Excepciones por fecha</h3>
+          <p className="mt-1 text-sm text-neutral-500">
+            Define bloques solo para un día específico o bloquea horarios puntuales.
+          </p>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-6">
+          <div className="space-y-1.5">
+            <label className="text-[10px] uppercase tracking-[0.2em] text-neutral-400">Fecha</label>
+            <input
+              type="date"
+              value={newOverride.date}
+              onChange={(e) => setNewOverride((prev) => ({ ...prev, date: e.target.value }))}
+              className="block w-full border-b border-neutral-300 bg-transparent pb-1 text-sm text-brand outline-none focus:border-brand"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] uppercase tracking-[0.2em] text-neutral-400">Tipo</label>
+            <select
+              value={newOverride.override_type}
+              onChange={(e) =>
+                setNewOverride((prev) => ({ ...prev, override_type: e.target.value as AvailabilityOverrideType }))
+              }
+              className="block w-full border-b border-neutral-300 bg-transparent pb-1 text-sm text-brand outline-none focus:border-brand"
+            >
+              <option value="add">Agregar bloque</option>
+              <option value="block">Bloquear bloque</option>
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] uppercase tracking-[0.2em] text-neutral-400">Inicio</label>
+            <input
+              type="time"
+              value={newOverride.start_time}
+              onChange={(e) => setNewOverride((prev) => ({ ...prev, start_time: e.target.value }))}
+              className="block w-full border-b border-neutral-300 bg-transparent pb-1 text-sm text-brand outline-none focus:border-brand"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] uppercase tracking-[0.2em] text-neutral-400">Fin</label>
+            <input
+              type="time"
+              value={newOverride.end_time}
+              onChange={(e) => setNewOverride((prev) => ({ ...prev, end_time: e.target.value }))}
+              className="block w-full border-b border-neutral-300 bg-transparent pb-1 text-sm text-brand outline-none focus:border-brand"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] uppercase tracking-[0.2em] text-neutral-400">Modalidad</label>
+            <select
+              value={newOverride.modality}
+              onChange={(e) => setNewOverride((prev) => ({ ...prev, modality: e.target.value as ModalityOption }))}
+              className="block w-full border-b border-neutral-300 bg-transparent pb-1 text-sm text-brand outline-none focus:border-brand"
+            >
+              {modalityOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] uppercase tracking-[0.2em] text-neutral-400">Duración</label>
+            <select
+              value={newOverride.slot_duration}
+              onChange={(e) => setNewOverride((prev) => ({ ...prev, slot_duration: Number(e.target.value) }))}
+              className="block w-full border-b border-neutral-300 bg-transparent pb-1 text-sm text-brand outline-none focus:border-brand"
+            >
+              {slotOptions.map((m) => (
+                <option key={m} value={m}>
+                  {m} min
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-[10px] uppercase tracking-[0.2em] text-neutral-400">Nota (opcional)</label>
+          <input
+            type="text"
+            value={newOverride.note}
+            onChange={(e) => setNewOverride((prev) => ({ ...prev, note: e.target.value }))}
+            className="block w-full border-b border-neutral-300 bg-transparent pb-1 text-sm text-brand outline-none focus:border-brand"
+            placeholder="Ej: Reunión clínica, paciente derivado, etc."
+          />
+        </div>
+
+        <div className="flex items-center gap-4">
+          <button
+            onClick={handleCreateOverride}
+            disabled={overrideSaving}
+            className="border-y border-brand px-6 py-2 text-[11px] uppercase tracking-[0.2em] text-brand transition-colors hover:bg-brand hover:text-white disabled:opacity-50"
+          >
+            {overrideSaving ? "Guardando..." : "Agregar excepción"}
+          </button>
+          {overrideMessage && (
+            <p
+              className={`text-sm ${
+                overrideMessage.includes("Error") || overrideMessage.includes("No se")
+                  ? "text-red-600"
+                  : "text-emerald-600"
+              }`}
+            >
+              {overrideMessage}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          {overrides.length === 0 ? (
+            <p className="text-sm text-neutral-400">No tienes excepciones configuradas.</p>
+          ) : (
+            overrides.map((ov) => (
+              <div key={ov.id} className="flex flex-wrap items-center gap-3 border border-neutral-200 p-3 text-sm">
+                <span className="font-medium text-brand">{ov.date}</span>
+                <span className="text-neutral-500">{ov.start_time} - {ov.end_time}</span>
+                <span
+                  className={`rounded px-2 py-0.5 text-xs uppercase tracking-[0.15em] ${
+                    ov.override_type === "add"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-red-50 text-red-700"
+                  }`}
+                >
+                  {ov.override_type === "add" ? "Agregar" : "Bloquear"}
+                </span>
+                <span className="text-xs text-neutral-500">{ov.modality}</span>
+                {ov.note && <span className="text-xs text-neutral-500">{ov.note}</span>}
+                <button
+                  onClick={() => handleDeleteOverride(ov.id)}
+                  className="ml-auto text-[10px] uppercase tracking-[0.2em] text-neutral-400 transition-colors hover:text-red-600"
+                >
+                  Eliminar
+                </button>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

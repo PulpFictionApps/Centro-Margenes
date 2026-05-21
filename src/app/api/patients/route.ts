@@ -34,23 +34,39 @@ export async function GET(request: NextRequest) {
       .from("patients")
       .select("*", { count: "exact" });
 
-    // Always filter patients by therapist — each professional sees only their own
-    {
-      const { data: apptRows } = await supabase
-        .from("appointments")
-        .select("patient_id")
-        .eq("therapist_id", therapist.id);
+    const isAdmin = therapist.role === "admin" || therapist.role === "super_admin";
 
-      const patientIds = Array.from(new Set((apptRows || []).map((r) => r.patient_id)));
+    if (!isAdmin) {
+      const [{ data: ownedLinks }, { data: appointments }] = await Promise.all([
+        supabase
+          .from("therapist_patients")
+          .select("patient_id")
+          .eq("therapist_id", therapist.id),
+        supabase
+          .from("appointments")
+          .select("patient_id")
+          .eq("therapist_id", therapist.id),
+      ]);
+
+      const patientIds = Array.from(
+        new Set([
+          ...(ownedLinks ?? []).map((row) => row.patient_id),
+          ...(appointments ?? []).map((row) => row.patient_id),
+        ])
+      );
 
       if (patientIds.length === 0) {
-        return NextResponse.json({ patients: [], total: 0, page, limit });
+        return NextResponse.json({
+          patients: [],
+          total: 0,
+          page,
+          limit,
+        });
       }
 
       query = query.in("id", patientIds);
     }
 
-    // Search by name, email, or document
     if (search) {
       query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%,document.ilike.%${search}%`);
     }
@@ -65,7 +81,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      patients: patients || [],
+      patients: patients ?? [],
       total: count || 0,
       page,
       limit,
@@ -96,11 +112,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if patient with same email or document exists
+    const { data: therapist } = await supabase
+      .from("therapists")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!therapist) {
+      return NextResponse.json({ error: "Terapeuta no encontrado" }, { status: 404 });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
     let existingQuery = supabase
       .from("patients")
       .select("id")
-      .eq("email", email.trim());
+      .eq("email", normalizedEmail);
 
     if (document) {
       existingQuery = existingQuery.or(`document.eq.${document.trim()}`);
@@ -109,17 +135,34 @@ export async function POST(request: NextRequest) {
     const { data: existing } = await existingQuery.maybeSingle();
 
     if (existing) {
-      return NextResponse.json(
-        { error: "Ya existe un paciente con este email o documento", patient: existing },
-        { status: 409 }
-      );
+      const { error: linkError } = await supabase
+        .from("therapist_patients")
+        .upsert(
+          {
+            therapist_id: therapist.id,
+            patient_id: existing.id,
+            source: "manual",
+          },
+          { onConflict: "therapist_id,patient_id" }
+        );
+
+      if (linkError) {
+        console.error("Error linking existing patient:", linkError);
+        return NextResponse.json({ error: "Error al vincular paciente" }, { status: 500 });
+      }
+
+      return NextResponse.json({
+        patient: existing,
+        linked: true,
+        message: "Paciente existente vinculado a tu cartera",
+      });
     }
 
     const { data: patient, error } = await supabase
       .from("patients")
       .insert({
         name: name.trim(),
-        email: email.trim(),
+        email: normalizedEmail,
         phone: phone.trim(),
         birthdate: birthdate || null,
         document: document?.trim() || null,
@@ -130,6 +173,19 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error("Error creating patient:", error);
       return NextResponse.json({ error: "Error al crear paciente" }, { status: 500 });
+    }
+
+    const { error: linkError } = await supabase
+      .from("therapist_patients")
+      .insert({
+        therapist_id: therapist.id,
+        patient_id: patient.id,
+        source: "manual",
+      });
+
+    if (linkError) {
+      console.error("Error linking patient:", linkError);
+      return NextResponse.json({ error: "Paciente creado pero no vinculado" }, { status: 500 });
     }
 
     return NextResponse.json({ patient }, { status: 201 });

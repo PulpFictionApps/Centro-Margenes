@@ -65,6 +65,29 @@ export type Availability = {
   created_at: string;
 };
 
+export type AvailabilityOverrideType = "add" | "block";
+
+export type AvailabilityOverride = {
+  id: string;
+  therapist_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  slot_duration: number;
+  modality: "online" | "in_person" | "both";
+  override_type: AvailabilityOverrideType;
+  note: string | null;
+  created_at: string;
+};
+
+export type TherapistPatient = {
+  id: string;
+  therapist_id: string;
+  patient_id: string;
+  source: "manual" | "booking" | "imported";
+  created_at: string;
+};
+
 export type Service = {
   id: string;
   name: string;

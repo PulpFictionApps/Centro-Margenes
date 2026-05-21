@@ -22,7 +22,7 @@ export default async function AvailabilityPage() {
         <p className="text-[11px] uppercase tracking-[0.25em] text-neutral-400 mb-3">Configuración</p>
         <h1 className="font-playfair text-3xl text-brand">Disponibilidad</h1>
         <p className="mt-2 text-sm text-neutral-500">
-          Configura tu horario semanal de atención.
+          Configura tu horario semanal y excepciones puntuales por fecha.
         </p>
       </div>
       <AvailabilityEditor therapistId={therapist?.id} />

@@ -118,6 +118,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const { error: linkError } = await supabaseAdmin
+      .from("therapist_patients")
+      .upsert(
+        {
+          therapist_id: therapistId,
+          patient_id: patientId,
+          source: "booking",
+        },
+        { onConflict: "therapist_id,patient_id" }
+      );
+
+    if (linkError) {
+      console.error("[book-appointment] Failed to link patient with therapist roster:", linkError);
+    }
+
     // 4. Fetch related data for confirmation email (non-blocking)
     // Include user_id in therapist query so we don't need a separate lookup
     const [therapistRes, serviceRes, branchRes] = await Promise.all([
