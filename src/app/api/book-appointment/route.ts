@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
-import { sendAppointmentConfirmation } from "@/lib/email";
+import {
+  sendAppointmentConfirmation,
+  sendTherapistBookingNotification,
+} from "@/lib/email";
 import { sendPushToUser } from "@/lib/push";
 import { buildGoogleCalendarUrl } from "@/lib/utils";
 
@@ -118,7 +121,7 @@ export async function POST(request: NextRequest) {
     // 4. Fetch related data for confirmation email (non-blocking)
     // Include user_id in therapist query so we don't need a separate lookup
     const [therapistRes, serviceRes, branchRes] = await Promise.all([
-      supabaseAdmin.from("therapists").select("name, user_id").eq("id", therapistId).single(),
+      supabaseAdmin.from("therapists").select("name, user_id, email").eq("id", therapistId).single(),
       serviceId
         ? supabase.from("services").select("name").eq("id", serviceId).single()
         : Promise.resolve({ data: null }),
@@ -128,10 +131,10 @@ export async function POST(request: NextRequest) {
     const isOnline = branchRes.data?.type === "online";
     const cancelToken = appointmentRow?.cancellation_token;
 
-    // Fire-and-forget: don't block the response on email delivery
-    sendAppointmentConfirmation({
+    // Await confirmation email so serverless execution does not end before dispatch.
+    const confirmationEmail = await sendAppointmentConfirmation({
       patientName: patient.name.trim(),
-      patientEmail: patient.email.trim(),
+      patientEmail: patient.email.trim().toLowerCase(),
       therapistName: therapistRes.data?.name || "Tu terapeuta",
       serviceName: serviceRes.data?.name || "Consulta",
       date,
@@ -140,7 +143,32 @@ export async function POST(request: NextRequest) {
       branchName: branchRes.data?.name || "",
       meetingLink: isOnline ? (process.env.DEFAULT_MEETING_LINK || null) : null,
       cancellationToken: cancelToken || undefined,
-    }).catch((err) => console.error("[Email] fire-and-forget failed:", err));
+    });
+
+    if (confirmationEmail.error) {
+      console.error("[book-appointment] Confirmation email was not sent:", confirmationEmail.error);
+    }
+
+    const therapistEmail = (therapistRes.data as { email?: string } | null)?.email?.trim().toLowerCase();
+    if (therapistEmail) {
+      const therapistBookingEmail = await sendTherapistBookingNotification({
+        therapistName: therapistRes.data?.name || "Terapeuta",
+        therapistEmail,
+        patientName: patient.name.trim(),
+        patientEmail: patient.email.trim().toLowerCase(),
+        serviceName: serviceRes.data?.name || "Consulta",
+        date,
+        time,
+        modality: isOnline ? "Online" : "Presencial",
+        branchName: branchRes.data?.name || "",
+      });
+
+      if (therapistBookingEmail.error) {
+        console.error("[book-appointment] Therapist notification email was not sent:", therapistBookingEmail.error);
+      }
+    } else {
+      console.warn("[book-appointment] Therapist has no email configured, skipping notification email");
+    }
 
     // Push notification to the therapist — awaited so Vercel doesn't kill it before it finishes
     const therapistUserId = (therapistRes.data as { user_id?: string } | null)?.user_id ?? null;

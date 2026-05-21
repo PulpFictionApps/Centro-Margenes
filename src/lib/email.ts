@@ -1,5 +1,4 @@
 import { Resend } from "resend";
-import { buildGoogleCalendarUrl } from "@/lib/utils";
 
 let _resend: Resend | null = null;
 
@@ -10,7 +9,13 @@ function getResend(): Resend {
   return _resend;
 }
 
-const FROM_EMAIL = process.env.EMAIL_FROM || "Centro Márgenes <no-reply@centromargenes.cl>";
+const FROM_EMAIL = process.env.EMAIL_FROM || "Centro Márgenes <no-reply@centromargenes.com>";
+
+function getEmailConfigError(): string | null {
+  if (!process.env.RESEND_API_KEY) return "Missing RESEND_API_KEY";
+  if (!process.env.EMAIL_FROM) return "Missing EMAIL_FROM";
+  return null;
+}
 
 // ─── Types ─────────────────────────────────────────────────────────
 export interface AppointmentEmailData {
@@ -24,6 +29,18 @@ export interface AppointmentEmailData {
   branchName: string;
   meetingLink?: string | null;
   cancellationToken?: string;
+}
+
+export interface TherapistBookingEmailData {
+  therapistName: string;
+  therapistEmail: string;
+  patientName: string;
+  patientEmail: string;
+  serviceName: string;
+  date: string;
+  time: string;
+  modality: string;
+  branchName: string;
 }
 
 // ─── Date formatting helper ────────────────────────────────────────
@@ -133,22 +150,10 @@ function confirmationHtml(data: AppointmentEmailData): string {
     </p>`;
 
   if (data.cancellationToken) {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://centromargenes.cl";
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://centromargenes.com";
     const cancelUrl = `${baseUrl}/cancelar/${data.cancellationToken}`;
-    const gcalUrl = buildGoogleCalendarUrl({
-      title: `Cita con ${data.therapistName} — Centro Márgenes`,
-      date: data.date,
-      time: data.time,
-      durationMinutes: 60,
-      location: data.modality === "Online" ? "Online" : data.branchName,
-      details: `Servicio: ${data.serviceName}${data.modality === "Online" && data.meetingLink ? `\nEnlace: ${data.meetingLink}` : ""}`,
-    });
     body += `
     <div style="margin:24px 0 0;text-align:center;">
-      <a href="${gcalUrl}" target="_blank" style="display:inline-block;margin-bottom:12px;padding:12px 28px;background-color:#1a73e8;color:#ffffff;text-decoration:none;font-size:13px;letter-spacing:0.05em;text-transform:uppercase;border-radius:4px;">
-        📅 Agregar a Google Calendar
-      </a>
-      <br/>
       <a href="${cancelUrl}" style="display:inline-block;padding:12px 28px;background-color:#5b2525;color:#EDE6CA;text-decoration:none;font-size:13px;letter-spacing:0.05em;text-transform:uppercase;">
         Cancelar mi cita
       </a>
@@ -199,43 +204,125 @@ function reminderHtml(data: AppointmentEmailData, hoursBeforeLabel: string): str
   return emailLayout("Recordatorio de Cita - Centro Márgenes", body);
 }
 
+function therapistBookingHtml(data: TherapistBookingEmailData): string {
+  const dateFormatted = formatDateES(data.date);
+
+  let details = "";
+  details += detailRow("Paciente", data.patientName);
+  details += detailRow("Email paciente", data.patientEmail);
+  details += detailRow("Servicio", data.serviceName);
+  details += detailRow("Fecha", dateFormatted);
+  details += detailRow("Hora", data.time + " hrs");
+  details += detailRow("Modalidad", data.modality);
+
+  if (data.modality === "Presencial") {
+    details += detailRow("Lugar", data.branchName);
+  }
+
+  const body = `
+    <h2 style="margin:0 0 8px;font-size:20px;color:#5b2525;font-weight:400;">
+      Nueva cita agendada
+    </h2>
+    <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.6;">
+      Hola <strong>${data.therapistName}</strong>, se ha agendado una nueva cita en tu calendario.
+    </p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #eee;border-radius:6px;padding:16px;">
+      ${details}
+    </table>
+    <p style="margin:24px 0 0;font-size:14px;color:#777;line-height:1.6;">
+      Revisa tu panel para más detalles y seguimiento de esta reserva.
+    </p>`;
+
+  return emailLayout("Nueva Cita Agendada - Centro Márgenes", body);
+}
+
 // ─── Public send functions ─────────────────────────────────────────
 
 export async function sendAppointmentConfirmation(data: AppointmentEmailData) {
-  const html = confirmationHtml(data);
-
-  const { error } = await getResend().emails.send({
-    from: FROM_EMAIL,
-    to: data.patientEmail,
-    subject: `Confirmación de cita — ${formatDateES(data.date)}, ${data.time} hrs`,
-    html,
-  });
-
-  if (error) {
-    console.error("[Email] Confirmation send failed:", error);
+  const configError = getEmailConfigError();
+  if (configError) {
+    console.error("[Email] Confirmation skipped:", configError);
+    return { error: new Error(configError) };
   }
 
-  return { error };
+  const html = confirmationHtml(data);
+
+  try {
+    const { error } = await getResend().emails.send({
+      from: FROM_EMAIL,
+      to: data.patientEmail,
+      subject: `Confirmación de cita — ${formatDateES(data.date)}, ${data.time} hrs`,
+      html,
+    });
+
+    if (error) {
+      console.error("[Email] Confirmation send failed:", error);
+    }
+
+    return { error };
+  } catch (error) {
+    console.error("[Email] Confirmation send exception:", error);
+    return { error };
+  }
 }
 
 export async function sendAppointmentReminder(
   data: AppointmentEmailData,
   hoursBeforeLabel: string
 ) {
-  const html = reminderHtml(data, hoursBeforeLabel);
-
-  const { error } = await getResend().emails.send({
-    from: FROM_EMAIL,
-    to: data.patientEmail,
-    subject: `Recordatorio: cita ${hoursBeforeLabel} — ${data.time} hrs`,
-    html,
-  });
-
-  if (error) {
-    console.error("[Email] Reminder send failed:", error);
+  const configError = getEmailConfigError();
+  if (configError) {
+    console.error("[Email] Reminder skipped:", configError);
+    return { error: new Error(configError) };
   }
 
-  return { error };
+  const html = reminderHtml(data, hoursBeforeLabel);
+
+  try {
+    const { error } = await getResend().emails.send({
+      from: FROM_EMAIL,
+      to: data.patientEmail,
+      subject: `Recordatorio: cita ${hoursBeforeLabel} — ${data.time} hrs`,
+      html,
+    });
+
+    if (error) {
+      console.error("[Email] Reminder send failed:", error);
+    }
+
+    return { error };
+  } catch (error) {
+    console.error("[Email] Reminder send exception:", error);
+    return { error };
+  }
+}
+
+export async function sendTherapistBookingNotification(data: TherapistBookingEmailData) {
+  const configError = getEmailConfigError();
+  if (configError) {
+    console.error("[Email] Therapist booking notification skipped:", configError);
+    return { error: new Error(configError) };
+  }
+
+  const html = therapistBookingHtml(data);
+
+  try {
+    const { error } = await getResend().emails.send({
+      from: FROM_EMAIL,
+      to: data.therapistEmail,
+      subject: `Nueva cita agendada — ${formatDateES(data.date)}, ${data.time} hrs`,
+      html,
+    });
+
+    if (error) {
+      console.error("[Email] Therapist booking notification send failed:", error);
+    }
+
+    return { error };
+  } catch (error) {
+    console.error("[Email] Therapist booking notification send exception:", error);
+    return { error };
+  }
 }
 
 // ─── Evaluation request email ──────────────────────────────────────
@@ -249,7 +336,7 @@ export interface EvaluationEmailData {
 
 function evaluationRequestHtml(data: EvaluationEmailData): string {
   const dateFormatted = formatDateES(data.date);
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://centromargenes.cl";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://centromargenes.com";
   const evaluationUrl = `${baseUrl}/evaluar/${data.evaluationToken}`;
 
   const body = `
@@ -263,7 +350,7 @@ function evaluationRequestHtml(data: EvaluationEmailData): string {
     <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.6;">
       Tu opinión nos ayuda a mejorar nuestro servicio. ¿Podrías tomar un momento para evaluar tu experiencia?
     </p>
-    <div style="text-align:center;margin:32px 0;"> 
+    <div style="text-align:center;margin:32px 0;">
       <a href="${evaluationUrl}" style="display:inline-block;padding:14px 32px;background-color:#5b2525;color:#EDE6CA;text-decoration:none;font-size:14px;letter-spacing:0.05em;text-transform:uppercase;border-radius:4px;">
         Evaluar mi sesión
       </a>
@@ -280,18 +367,29 @@ function evaluationRequestHtml(data: EvaluationEmailData): string {
 }
 
 export async function sendEvaluationRequest(data: EvaluationEmailData) {
-  const html = evaluationRequestHtml(data);
-
-  const { error } = await getResend().emails.send({
-    from: FROM_EMAIL,
-    to: data.patientEmail,
-    subject: `¿Cómo fue tu sesión? — Centro Márgenes`,
-    html,
-  });
-
-  if (error) {
-    console.error("[Email] Evaluation request send failed:", error);
+  const configError = getEmailConfigError();
+  if (configError) {
+    console.error("[Email] Evaluation request skipped:", configError);
+    return { error: new Error(configError) };
   }
 
-  return { error };
+  const html = evaluationRequestHtml(data);
+
+  try {
+    const { error } = await getResend().emails.send({
+      from: FROM_EMAIL,
+      to: data.patientEmail,
+      subject: `¿Cómo fue tu sesión? — Centro Márgenes`,
+      html,
+    });
+
+    if (error) {
+      console.error("[Email] Evaluation request send failed:", error);
+    }
+
+    return { error };
+  } catch (error) {
+    console.error("[Email] Evaluation request send exception:", error);
+    return { error };
+  }
 }
