@@ -6,7 +6,7 @@ import { sendPushToUser } from "@/lib/push";
 
 export const dynamic = 'force-dynamic';
 
-type ReminderKind = "24h" | "2h";
+type ReminderKind = "24h" | "1h";
 
 type AppointmentRow = {
   id: string;
@@ -31,7 +31,7 @@ type SupabaseAppointmentRow = {
  *
  * Sends reminder emails for upcoming appointments:
  *   - 24 hours before
- *   - 2 hours before
+ *   - 1 hour before
  *
  * Call this endpoint every 30 minutes via an external cron scheduler
  * (Vercel Cron, cron-job.org, Supabase pg_cron, etc.).
@@ -69,11 +69,11 @@ export async function GET(request: NextRequest) {
     : supabase;
 
   const now = new Date();
-  const results = { sent24h: 0, sent2h: 0, errors: 0 };
+  const results = { sent24h: 0, sent1h: 0, errors: 0 };
 
   // ── Helper: compute window boundaries ────────────────────────────
   // We look for appointments whose date+time falls within a 30-min
-  // window around the target offset (24h or 2h from now).
+  // window around the target offset (24h or 1h from now).
   function getWindow(hoursAhead: number) {
     const center = new Date(now.getTime() + hoursAhead * 60 * 60 * 1000);
     const from = new Date(center.getTime() - 15 * 60 * 1000);
@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
   }
 
   async function claimReminder(appointmentId: string, kind: ReminderKind) {
-    const column = kind === "24h" ? "reminder_24h_sent_at" : "reminder_2h_sent_at";
+    const column = kind === "24h" ? "reminder_24h_sent_at" : "reminder_1h_sent_at";
     const { data, error } = await supabaseAdmin
       .from("appointments")
       .update({ [column]: new Date().toISOString() })
@@ -215,13 +215,13 @@ export async function GET(request: NextRequest) {
       }
 
       if (kind === "24h") results.sent24h++;
-      if (kind === "2h") results.sent2h++;
+      if (kind === "1h") results.sent1h++;
       await notifyTherapist(appt, hoursLabel);
     }
   }
 
   await processWindow(24, "24 horas", "24h");
-  await processWindow(2, "2 horas", "2h");
+  await processWindow(1, "1 hora", "1h");
 
   return NextResponse.json({
     ok: true,
