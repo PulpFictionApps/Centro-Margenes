@@ -130,3 +130,92 @@ html {
 .btn-fill-tan:hover {
   color: #fff;
 }
+
+/* Dashboard calendar theme */
+.dashboard-calendar .fc {
+  --fc-border-color: #e4dbc5;
+  --fc-page-bg-color: #fffdf7;
+  --fc-neutral-bg-color: #f6f0e0;
+  --fc-list-event-hover-bg-color: #f3ead6;
+  --fc-today-bg-color: #f7f1df;
+  --fc-button-bg-color: #16324f;
+  --fc-button-border-color: #16324f;
+  --fc-button-hover-bg-color: #0f2740;
+  --fc-button-hover-border-color: #0f2740;
+  --fc-button-active-bg-color: #0f2740;
+  --fc-button-active-border-color: #0f2740;
+  font-family: var(--font-leggibilmente), sans-serif;
+}
+
+.dashboard-calendar .fc .fc-toolbar {
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.dashboard-calendar .fc .fc-toolbar-title {
+  font-family: var(--font-playfair), serif;
+  color: #2f2622;
+  font-size: 1.9rem;
+  font-weight: 500;
+  text-transform: lowercase;
+}
+
+.dashboard-calendar .fc .fc-button {
+  border-radius: 0.65rem;
+  box-shadow: none;
+  font-weight: 600;
+}
+
+.dashboard-calendar .fc .fc-button:focus {
+  box-shadow: 0 0 0 3px rgba(22, 50, 79, 0.2);
+}
+
+.dashboard-calendar .fc .fc-col-header-cell-cushion {
+  color: #58483d;
+  font-weight: 700;
+  text-transform: lowercase;
+  letter-spacing: 0.01em;
+  padding: 0.5rem 0.35rem;
+}
+
+.dashboard-calendar .fc .fc-daygrid-day-number,
+.dashboard-calendar .fc .fc-timegrid-axis-cushion,
+.dashboard-calendar .fc .fc-timegrid-slot-label-cushion {
+  color: #6a5a4b;
+}
+
+.dashboard-calendar .fc .fc-event {
+  border-radius: 0.55rem;
+  border-width: 1px;
+  padding: 2px 4px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-calendar .fc .fc-event-title,
+.dashboard-calendar .fc .fc-event-time {
+  font-weight: 600;
+}
+
+.dashboard-calendar .fc .fc-daygrid-day.fc-day-today {
+  box-shadow: inset 0 0 0 1px #d8c8a5;
+}
+
+@media (max-width: 768px) {
+  .dashboard-calendar .fc .fc-toolbar-title {
+    font-size: 1.35rem;
+  }
+
+  .dashboard-calendar .fc .fc-toolbar-chunk {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+
+  .dashboard-calendar .fc .fc-button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+  }
+}

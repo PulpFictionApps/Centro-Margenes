@@ -26,6 +26,7 @@ export function CalendarPage({ therapist }: CalendarPageProps) {
   const [appointments, setAppointments] = useState<AppointmentWithRelations[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentWithRelations | null>(null);
   const [visibleStart, setVisibleStart] = useState<string>(new Date().toISOString().split("T")[0]);
   const [visibleEnd, setVisibleEnd] = useState<string>(new Date().toISOString().split("T")[0]);
@@ -81,7 +82,6 @@ export function CalendarPage({ therapist }: CalendarPageProps) {
       const params = new URLSearchParams({
         start_date: visibleStart,
         end_date: visibleEnd,
-        therapist_id: therapist.id,
         limit: "500",
       });
 
@@ -97,8 +97,9 @@ export function CalendarPage({ therapist }: CalendarPageProps) {
       console.error("Error fetching appointments:", error);
     } finally {
       setLoading(false);
+      setHasLoaded(true);
     }
-  }, [visibleStart, visibleEnd, therapist.id, mapAppointmentsToEvents]);
+  }, [visibleStart, visibleEnd, mapAppointmentsToEvents]);
 
   useEffect(() => {
     fetchAppointments();
@@ -153,28 +154,37 @@ export function CalendarPage({ therapist }: CalendarPageProps) {
         </CardHeader>
 
         <CardContent>
-          {loading ? (
+          {!hasLoaded && loading ? (
             <div className="h-96 flex items-center justify-center">
               <div className="text-neutral-500">Cargando citas...</div>
             </div>
           ) : (
-            <div className="rounded-lg border p-2 overflow-hidden">
+            <div className="dashboard-calendar relative rounded-2xl border border-[#d9ceb2] bg-[#fffdf7] p-3 shadow-sm overflow-hidden">
+              {loading && (
+                <div className="pointer-events-none absolute right-4 top-4 z-10 rounded-full bg-white/90 px-3 py-1 text-xs text-neutral-500 shadow">
+                  Actualizando...
+                </div>
+              )}
               <FullCalendar
                 key={isMobile ? "mobile" : "desktop"}
                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
                 initialView={isMobile ? "timeGridDay" : "dayGridMonth"}
                 headerToolbar={
                   isMobile
-                    ? { left: "prev,next", center: "title", right: "today" }
+                    ? { left: "prev,next", center: "title", right: "today dayGridMonth,timeGridWeek,timeGridDay" }
                     : { left: "prev,next today", center: "title", right: "dayGridMonth,timeGridWeek,timeGridDay" }
                 }
                 buttonText={{
                   today: "Hoy",
+                  dayGridMonth: "Mes",
+                  timeGridWeek: "Semana",
+                  timeGridDay: "Día",
                   month: "Mes",
                   week: "Semana",
                   day: "Día",
                 }}
                 locale={esLocale}
+                firstDay={1}
                 height="auto"
                 events={events}
                 eventClick={(info) => handleEventClick(info.event.id)}
@@ -185,6 +195,7 @@ export function CalendarPage({ therapist }: CalendarPageProps) {
                 slotMinTime="08:00:00"
                 slotMaxTime="21:00:00"
                 allDaySlot={false}
+                nowIndicator={true}
               />
             </div>
           )}
