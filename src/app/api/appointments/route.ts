@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
         treatment:treatments (id, name, duration_minutes),
         branch:branches (id, name, type)
       `)
-      .single();
+      ;
 
     if (error) {
       console.error("Error creating appointment:", error);
@@ -148,7 +148,14 @@ export async function POST(request: NextRequest) {
           { status: 409 }
         );
       }
-      return NextResponse.json({ error: "Error al crear cita" }, { status: 500 });
+      return NextResponse.json(
+        {
+          error: "Error al crear cita",
+          details: error.message,
+          code: error.code,
+        },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json(
