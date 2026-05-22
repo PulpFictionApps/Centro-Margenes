@@ -83,6 +83,7 @@ export function CalendarPage({ therapist }: CalendarPageProps) {
         start_date: visibleStart,
         end_date: visibleEnd,
         limit: "500",
+        therapist_id: therapist.id,
       });
 
       const response = await fetch(`/api/appointments?${params}`);
@@ -99,7 +100,7 @@ export function CalendarPage({ therapist }: CalendarPageProps) {
       setLoading(false);
       setHasLoaded(true);
     }
-  }, [visibleStart, visibleEnd, mapAppointmentsToEvents]);
+  }, [visibleStart, visibleEnd, mapAppointmentsToEvents, therapist.id]);
 
   useEffect(() => {
     fetchAppointments();
@@ -121,6 +122,16 @@ export function CalendarPage({ therapist }: CalendarPageProps) {
     const appointment = content.event.extendedProps.appointment as AppointmentWithRelations;
     const service = appointment.treatment?.name ?? "Servicio";
     const modality = appointment.branch?.type === "online" ? "Online" : "Presencial";
+    const isTimeGridView = content.view.type === "timeGridWeek" || content.view.type === "timeGridDay";
+
+    if (isTimeGridView) {
+      return (
+        <div className="px-1 py-0.5 text-[11px] leading-tight">
+          <div className="font-semibold truncate">{appointment.patient?.name ?? "Paciente"}</div>
+          <div className="truncate opacity-90">{service} · {modality}</div>
+        </div>
+      );
+    }
 
     return (
       <div className="px-1 py-0.5 text-[11px] leading-tight">
@@ -192,6 +203,8 @@ export function CalendarPage({ therapist }: CalendarPageProps) {
                 datesSet={handleDatesSet}
                 eventDisplay="block"
                 dayMaxEventRows={3}
+                eventMinHeight={26}
+                eventShortHeight={22}
                 slotMinTime="08:00:00"
                 slotMaxTime="21:00:00"
                 allDaySlot={false}

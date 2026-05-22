@@ -138,12 +138,12 @@ html {
   --fc-neutral-bg-color: #f6f0e0;
   --fc-list-event-hover-bg-color: #f3ead6;
   --fc-today-bg-color: #f7f1df;
-  --fc-button-bg-color: #16324f;
-  --fc-button-border-color: #16324f;
-  --fc-button-hover-bg-color: #0f2740;
-  --fc-button-hover-border-color: #0f2740;
-  --fc-button-active-bg-color: #0f2740;
-  --fc-button-active-border-color: #0f2740;
+  --fc-button-bg-color: #5b2525;
+  --fc-button-border-color: #5b2525;
+  --fc-button-hover-bg-color: #4b1e1e;
+  --fc-button-hover-border-color: #4b1e1e;
+  --fc-button-active-bg-color: #451919;
+  --fc-button-active-border-color: #451919;
   font-family: var(--font-leggibilmente), sans-serif;
 }
 
@@ -168,7 +168,7 @@ html {
 }
 
 .dashboard-calendar .fc .fc-button:focus {
-  box-shadow: 0 0 0 3px rgba(22, 50, 79, 0.2);
+  box-shadow: 0 0 0 3px rgba(91, 37, 37, 0.25);
 }
 
 .dashboard-calendar .fc .fc-col-header-cell-cushion {
