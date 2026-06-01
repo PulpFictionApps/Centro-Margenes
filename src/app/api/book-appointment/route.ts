@@ -176,6 +176,7 @@ export async function POST(request: NextRequest) {
         time,
         durationMinutes: 60,
         location: branchRes.data?.name ?? "",
+        details: meetingLink ? `Enlace Meet: ${meetingLink}` : "",
       });
 
       const therapistBookingEmail = await sendTherapistBookingNotification({
@@ -210,6 +211,7 @@ export async function POST(request: NextRequest) {
           time,
           durationMinutes: 60,
           location: branchRes.data?.name ?? "",
+          details: meetingLink ? `Enlace Meet: ${meetingLink}` : "",
         });
         await sendPushToUser(supabaseAdmin, therapistUserId, {
           title: "Nueva cita agendada 📅",

@@ -233,6 +233,7 @@ export async function POST(request: NextRequest) {
             time: created.time,
             durationMinutes: 60,
             location: branch?.name ?? "",
+            details: meetingLink ? `Enlace Meet: ${meetingLink}` : "",
           });
 
           const therapistBookingEmail = await sendTherapistBookingNotification({
@@ -263,7 +264,15 @@ export async function POST(request: NextRequest) {
       } | null);
       const firstBranch = unwrapRelation(firstCreated.branch as {
         name?: string;
+        type?: string;
       } | null);
+      const firstTherapistWithMeeting = unwrapRelation(firstCreated.therapist as {
+        user_id?: string;
+        meeting_link?: string | null;
+      } | null);
+      const firstMeetingLink = firstBranch?.type === "online"
+        ? (firstTherapistWithMeeting?.meeting_link || process.env.DEFAULT_MEETING_LINK || null)
+        : null;
 
       if (firstTherapist?.user_id) {
         try {
@@ -274,6 +283,7 @@ export async function POST(request: NextRequest) {
             time: firstCreated.time,
             durationMinutes: 60,
             location: firstBranch?.name ?? "",
+            details: firstMeetingLink ? `Enlace Meet: ${firstMeetingLink}` : "",
           });
 
           await sendPushToUser(adminSupabase, firstTherapist.user_id, {

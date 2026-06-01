@@ -1,15 +1,25 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Therapist, AppointmentWithRelations } from "@/lib/types";
+import { Therapist, AppointmentWithRelations, Patient, Branch, Service } from "@/lib/types";
+import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
 import type { DatesSetArg, EventContentArg, EventInput } from "@fullcalendar/core";
-import { Calendar } from "lucide-react";
+import { Calendar, Plus } from "lucide-react";
 import { AppointmentDetailModal } from "./appointment-detail-modal";
 
 interface CalendarPageProps {
@@ -23,11 +33,25 @@ type CalendarEvent = EventInput & {
 };
 
 export function CalendarPage({ therapist }: CalendarPageProps) {
+  const supabase = createClient();
   const [appointments, setAppointments] = useState<AppointmentWithRelations[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentWithRelations | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creatingAppointment, setCreatingAppointment] = useState(false);
+  const [createError, setCreateError] = useState("");
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [formData, setFormData] = useState({
+    patient_id: "",
+    date: "",
+    time: "",
+    branch_id: "",
+    service_id: "",
+  });
   const [visibleStart, setVisibleStart] = useState<string>(new Date().toISOString().split("T")[0]);
   const [visibleEnd, setVisibleEnd] = useState<string>(new Date().toISOString().split("T")[0]);
   const [isMobile, setIsMobile] = useState(false);
@@ -38,6 +62,27 @@ export function CalendarPage({ therapist }: CalendarPageProps) {
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
+
+  useEffect(() => {
+    async function fetchFormCatalogs() {
+      try {
+        const [patientsRes, branchRes, serviceRes] = await Promise.all([
+          fetch("/api/patients?limit=200"),
+          supabase.from("branches").select("*").order("name"),
+          supabase.from("services").select("*").order("name"),
+        ]);
+
+        const patientsPayload = await patientsRes.json().catch(() => ({ patients: [] }));
+        setPatients((patientsPayload.patients as Patient[]) ?? []);
+        setBranches((branchRes.data as Branch[]) ?? []);
+        setServices((serviceRes.data as Service[]) ?? []);
+      } catch (error) {
+        console.error("Error loading calendar form catalogs:", error);
+      }
+    }
+
+    fetchFormCatalogs();
+  }, [supabase]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -143,6 +188,51 @@ export function CalendarPage({ therapist }: CalendarPageProps) {
     );
   };
 
+  const handleCreateAppointment = async () => {
+    if (!formData.patient_id || !formData.date || !formData.time) {
+      setCreateError("Debes seleccionar paciente, fecha y hora.");
+      return;
+    }
+
+    setCreateError("");
+    setCreatingAppointment(true);
+
+    try {
+      const response = await fetch("/api/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patient_id: formData.patient_id,
+          date: formData.date,
+          time: formData.time,
+          branch_id: formData.branch_id || null,
+          service_id: formData.service_id || null,
+        }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        setCreateError(payload.error || "No se pudo crear la cita.");
+        return;
+      }
+
+      setShowCreateModal(false);
+      setFormData({
+        patient_id: "",
+        date: "",
+        time: "",
+        branch_id: "",
+        service_id: "",
+      });
+      await fetchAppointments();
+    } catch (error) {
+      console.error("Error creating appointment from calendar:", error);
+      setCreateError("No se pudo crear la cita.");
+    } finally {
+      setCreatingAppointment(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -210,10 +300,125 @@ export function CalendarPage({ therapist }: CalendarPageProps) {
                 allDaySlot={false}
                 nowIndicator={true}
               />
+
+              <button
+                type="button"
+                onClick={() => {
+                  setCreateError("");
+                  setShowCreateModal(true);
+                }}
+                className="absolute bottom-4 right-4 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-[#5b2525] text-white shadow-lg transition hover:bg-[#4a1f1f] focus:outline-none focus:ring-2 focus:ring-[#5b2525]/40"
+                aria-label="Agregar cita"
+                title="Agregar cita"
+              >
+                <Plus className="h-6 w-6" />
+              </button>
             </div>
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent className="sm:max-w-[520px]">
+          <DialogHeader>
+            <DialogTitle>Nueva cita</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="calendar-patient">Paciente</Label>
+              <select
+                id="calendar-patient"
+                value={formData.patient_id}
+                onChange={(e) => setFormData((prev) => ({ ...prev, patient_id: e.target.value }))}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <option value="">Selecciona un paciente</option>
+                {patients.map((patient) => (
+                  <option key={patient.id} value={patient.id}>
+                    {patient.name} {patient.email ? `(${patient.email})` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="calendar-date">Fecha</Label>
+                <Input
+                  id="calendar-date"
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="calendar-time">Hora</Label>
+                <Input
+                  id="calendar-time"
+                  type="time"
+                  value={formData.time}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, time: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="calendar-branch">Sucursal / modalidad</Label>
+              <select
+                id="calendar-branch"
+                value={formData.branch_id}
+                onChange={(e) => setFormData((prev) => ({ ...prev, branch_id: e.target.value }))}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <option value="">Sin sucursal (opcional)</option>
+                {branches.map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name} ({branch.type === "online" ? "Online" : "Presencial"})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="calendar-service">Servicio</Label>
+              <select
+                id="calendar-service"
+                value={formData.service_id}
+                onChange={(e) => setFormData((prev) => ({ ...prev, service_id: e.target.value }))}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <option value="">Sin servicio (opcional)</option>
+                {services.map((service) => (
+                  <option key={service.id} value={service.id}>
+                    {service.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {createError && (
+              <p className="text-sm text-red-600">{createError}</p>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowCreateModal(false)}
+                disabled={creatingAppointment}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleCreateAppointment}
+                disabled={creatingAppointment}
+              >
+                {creatingAppointment ? "Guardando..." : "Crear cita"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Appointment Detail Modal */}
       {selectedAppointment && (
