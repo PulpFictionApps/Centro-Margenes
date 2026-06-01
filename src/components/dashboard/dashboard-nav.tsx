@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard,
   Calendar,
+  NotebookPen,
   User,
   Clock,
   Briefcase,
@@ -20,7 +21,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/dashboard", label: "Inicio", icon: LayoutDashboard, exact: true },
-  { href: "/dashboard/appointments", label: "Citas", icon: Calendar, exact: false },
+  { href: "/dashboard/appointments", label: "Citas", icon: NotebookPen, exact: false },
   { href: "/dashboard/calendar", label: "Calendario", icon: Calendar, exact: false },
   { href: "/dashboard/patients", label: "Pacientes", icon: User, exact: false },
   { href: "/dashboard/clinical-records", label: "Fichas", icon: FileText, exact: false },
