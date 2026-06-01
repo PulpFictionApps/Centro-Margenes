@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import Image from "next/image";
 import { Patient, ClinicalRecordWithRelations, ClinicalAttachment } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -177,7 +176,7 @@ export function ClinicalRecordModal({
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px] max-h-[90dvh] overflow-hidden flex flex-col">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
@@ -197,8 +196,9 @@ export function ClinicalRecordModal({
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-hidden flex flex-col">
           <Tabs defaultValue="session" className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="session">Sesión</TabsTrigger>
+              <TabsTrigger value="clinical">Clínico</TabsTrigger>
               <TabsTrigger value="attachments" disabled={!record}>
                 Archivos {attachments.length > 0 && `(${attachments.length})`}
               </TabsTrigger>
@@ -206,19 +206,39 @@ export function ClinicalRecordModal({
 
             <div className="flex-1 overflow-y-auto mt-4 pr-2">
               <TabsContent value="session" className="space-y-4 mt-0">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="session_date">Fecha de sesión *</Label>
+                    <Input
+                      id="session_date"
+                      type="date"
+                      {...register("session_date")}
+                      className={errors.session_date ? "border-red-500" : ""}
+                    />
+                    {errors.session_date && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.session_date.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="mood_state">Estado de ánimo</Label>
+                    <Input
+                      id="mood_state"
+                      {...register("mood_state")}
+                      placeholder="Ej: Ansioso, Tranquilo, Triste..."
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <Label htmlFor="session_date">Fecha de sesión *</Label>
-                  <Input
-                    id="session_date"
-                    type="date"
-                    {...register("session_date")}
-                    className={errors.session_date ? "border-red-500" : ""}
+                  <Label htmlFor="chief_complaint">Motivo de consulta</Label>
+                  <Textarea
+                    id="chief_complaint"
+                    {...register("chief_complaint")}
+                    rows={3}
+                    placeholder="Describe el motivo principal de la consulta..."
                   />
-                  {errors.session_date && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.session_date.message}
-                    </p>
-                  )}
                 </div>
 
                 <div>
@@ -226,7 +246,7 @@ export function ClinicalRecordModal({
                   <Textarea
                     id="notes"
                     {...register("notes")}
-                    rows={6}
+                    rows={5}
                     placeholder="Registra las notas de la sesión..."
                   />
                 </div>
@@ -236,8 +256,50 @@ export function ClinicalRecordModal({
                   <Textarea
                     id="observations"
                     {...register("observations")}
-                    rows={4}
+                    rows={3}
                     placeholder="Observaciones adicionales..."
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="clinical" className="space-y-4 mt-0">
+                <div>
+                  <Label htmlFor="diagnosis">Diagnóstico</Label>
+                  <Textarea
+                    id="diagnosis"
+                    {...register("diagnosis")}
+                    rows={3}
+                    placeholder="Diagnóstico clínico..."
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="treatment_plan">Plan de tratamiento</Label>
+                  <Textarea
+                    id="treatment_plan"
+                    {...register("treatment_plan")}
+                    rows={4}
+                    placeholder="Describe el plan de tratamiento..."
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="progress_notes">Notas de progreso</Label>
+                  <Textarea
+                    id="progress_notes"
+                    {...register("progress_notes")}
+                    rows={3}
+                    placeholder="Registra el progreso del paciente..."
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="next_session_goals">Objetivos próxima sesión</Label>
+                  <Textarea
+                    id="next_session_goals"
+                    {...register("next_session_goals")}
+                    rows={3}
+                    placeholder="Objetivos para trabajar en la próxima sesión..."
                   />
                 </div>
               </TabsContent>
@@ -289,11 +351,9 @@ export function ClinicalRecordModal({
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded bg-brand/10 flex items-center justify-center">
                                 {attachment.file_type.startsWith("image/") ? (
-                                  <Image
+                                  <img
                                     src={attachment.file_url}
                                     alt=""
-                                    width={32}
-                                    height={32}
                                     className="w-8 h-8 object-cover rounded"
                                   />
                                 ) : (

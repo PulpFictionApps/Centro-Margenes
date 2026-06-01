@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
 import { Therapist } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -241,11 +240,9 @@ export function TeamManagementPage({ currentUser }: TeamManagementPageProps) {
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-brand/10 flex items-center justify-center">
                       {member.photo_url ? (
-                        <Image
+                        <img
                           src={member.photo_url}
                           alt={member.name}
-                          width={48}
-                          height={48}
                           className="w-12 h-12 rounded-full object-cover"
                         />
                       ) : (

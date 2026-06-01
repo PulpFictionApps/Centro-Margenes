@@ -40,13 +40,13 @@ export async function GET(request: NextRequest) {
       `, { count: "exact" });
 
     // Filter by therapist
-    // Admin viewing a specific therapist (admin panel) → filter by that therapistId.
-    // Everyone else — including an admin on their own dashboard — sees only their own.
     const isAdmin = therapist.role === "admin" || therapist.role === "super_admin";
-    const targetTherapistId =
-      isAdmin && therapistId ? therapistId : therapist.id;
-
-    query = query.eq("therapist_id", targetTherapistId);
+    
+    if (therapistId && isAdmin) {
+      query = query.eq("therapist_id", therapistId);
+    } else if (!isAdmin) {
+      query = query.eq("therapist_id", therapist.id);
+    }
 
     const { data: evaluations, error, count } = await query
       .order("created_at", { ascending: false })
@@ -57,11 +57,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Error al obtener evaluaciones" }, { status: 500 });
     }
 
-    // Calculate average rating (scoped to the same therapist)
-    const avgQuery = supabase
+    // Calculate average rating
+    let avgQuery = supabase
       .from("evaluations")
-      .select("rating")
-      .eq("therapist_id", targetTherapistId);
+      .select("rating");
+
+    if (!isAdmin) {
+      avgQuery = avgQuery.eq("therapist_id", therapist.id);
+    } else if (therapistId) {
+      avgQuery = avgQuery.eq("therapist_id", therapistId);
+    }
 
     const { data: allRatings } = await avgQuery;
     const averageRating = allRatings && allRatings.length > 0
@@ -111,10 +116,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify appointment exists and is completed.
-    // Use the admin client so unauthenticated patients can submit evaluations
-    // without being blocked by RLS (the appointment is validated by ID, not by auth).
-    const { data: appointment } = await supabaseAdmin
+    // Verify appointment exists and is completed
+    const { data: appointment } = await supabase
       .from("appointments")
       .select("id, therapist_id, patient_id, status")
       .eq("id", appointment_id)

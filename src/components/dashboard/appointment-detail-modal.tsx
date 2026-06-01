@@ -23,8 +23,7 @@ import {
   AlertCircle,
   CheckCircle,
   XCircle,
-  FileText,
-  CalendarPlus
+  FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -139,25 +138,6 @@ export function AppointmentDetailModal({
     }
   };
 
-  const buildGoogleCalendarUrl = () => {
-    const [hours, minutes] = appointment.time.split(":").map(Number);
-    const [y, m, d] = appointment.date.split("-").map(Number);
-    const start = new Date(y, m - 1, d, hours, minutes);
-    const durationMinutes = appointment.treatment?.duration_minutes ?? 60;
-    const end = new Date(start.getTime() + durationMinutes * 60 * 1000);
-
-    const pad = (n: number) => String(n).padStart(2, "0");
-    const fmt = (dt: Date) =>
-      `${dt.getFullYear()}${pad(dt.getMonth() + 1)}${pad(dt.getDate())}T${pad(dt.getHours())}${pad(dt.getMinutes())}00`;
-
-    const title = encodeURIComponent(
-      `Cita${appointment.patient ? ` — ${appointment.patient.name}` : ""}${appointment.treatment ? ` (${appointment.treatment.name})` : ""}`
-    );
-    const location = encodeURIComponent(appointment.branch?.name ?? "");
-
-    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${fmt(start)}/${fmt(end)}&location=${location}`;
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString + "T00:00:00").toLocaleDateString("es-CL", {
       weekday: "long",
@@ -201,7 +181,7 @@ export function AppointmentDetailModal({
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90dvh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
@@ -324,14 +304,6 @@ export function AppointmentDetailModal({
           <div className="space-y-4 pt-4 border-t">
             {appointment.status === "scheduled" && (
               <>
-                <div className="flex flex-wrap gap-2 pb-2">
-                  <Button asChild variant="outline" size="sm" className="border-blue-200 text-blue-700 hover:bg-blue-50">
-                    <a href={buildGoogleCalendarUrl()} target="_blank" rel="noreferrer">
-                      <CalendarPlus className="h-4 w-4 mr-1" />
-                      Agregar a Google Calendar
-                    </a>
-                  </Button>
-                </div>
                 <h3 className="font-semibold text-sm text-neutral-600">Cambiar estado</h3>
                 <div className="flex flex-wrap gap-2">
                   <Button

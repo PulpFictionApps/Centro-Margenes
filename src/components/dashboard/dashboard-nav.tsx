@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard,
@@ -12,19 +13,21 @@ import {
   LogOut,
   FileText,
   Star,
+  Menu,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/dashboard", label: "Inicio", shortLabel: "Inicio", icon: LayoutDashboard, exact: true },
-  { href: "/dashboard/appointments", label: "Citas", shortLabel: "Citas", icon: Calendar, exact: false },
-  { href: "/dashboard/calendar", label: "Calendario", shortLabel: "Agenda", icon: Calendar, exact: false },
-  { href: "/dashboard/patients", label: "Pacientes", shortLabel: "Pacientes", icon: User, exact: false },
-  { href: "/dashboard/clinical-records", label: "Fichas", shortLabel: "Fichas", icon: FileText, exact: false },
-  { href: "/dashboard/availability", label: "Disponibilidad", shortLabel: "Horarios", icon: Clock, exact: false },
-  { href: "/dashboard/evaluations", label: "Evaluaciones", shortLabel: "Evaluar", icon: Star, exact: false },
-  { href: "/dashboard/services", label: "Servicios", shortLabel: "Servicios", icon: Briefcase, exact: false },
-  { href: "/dashboard/profile", label: "Mi perfil", shortLabel: "Perfil", icon: User, exact: false },
+  { href: "/dashboard", label: "Inicio", icon: LayoutDashboard, exact: true },
+  { href: "/dashboard/appointments", label: "Citas", icon: Calendar, exact: false },
+  { href: "/dashboard/calendar", label: "Calendario", icon: Calendar, exact: false },
+  { href: "/dashboard/patients", label: "Pacientes", icon: User, exact: false },
+  { href: "/dashboard/clinical-records", label: "Fichas", icon: FileText, exact: false },
+  { href: "/dashboard/availability", label: "Disponibilidad", icon: Clock, exact: false },
+  { href: "/dashboard/evaluations", label: "Evaluaciones", icon: Star, exact: false },
+  { href: "/dashboard/services", label: "Servicios", icon: Briefcase, exact: false },
+  { href: "/dashboard/profile", label: "Mi perfil", icon: User, exact: false },
 ];
 
 interface DashboardNavProps {
@@ -34,6 +37,7 @@ interface DashboardNavProps {
 export function DashboardNav({ therapistName }: DashboardNavProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -57,7 +61,7 @@ export function DashboardNav({ therapistName }: DashboardNavProps) {
               </span>
             </Link>
             <span className="hidden h-4 w-px bg-neutral-300 md:block" />
-            {/* Desktop nav — icon + label */}
+            {/* Desktop nav — icon only, always */}
             <nav className="hidden items-center gap-0 md:flex">
               {navItems.map((item) => (
                 <Link
@@ -65,14 +69,13 @@ export function DashboardNav({ therapistName }: DashboardNavProps) {
                   href={item.href}
                   title={item.label}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-0.5 px-2.5 py-1.5 transition-colors rounded-sm",
+                    "flex items-center justify-center h-9 w-9 transition-colors rounded-sm",
                     isActive(item)
                       ? "text-brand"
                       : "text-neutral-400 hover:text-brand hover:bg-[#5b2525]/5"
                   )}
                 >
                   <item.icon className="h-4 w-4" aria-hidden="true" />
-                  <span className="text-[8px] uppercase tracking-[0.05em] leading-none">{item.label}</span>
                 </Link>
               ))}
             </nav>
@@ -86,43 +89,59 @@ export function DashboardNav({ therapistName }: DashboardNavProps) {
             <button
               onClick={handleLogout}
               title="Cerrar sesión"
-              className="hidden flex-col items-center justify-center gap-0.5 px-2.5 py-1.5 rounded-sm text-neutral-400 transition-colors hover:text-brand md:flex"
+              className="hidden h-9 w-9 items-center justify-center rounded-sm text-neutral-400 transition-colors hover:text-brand md:flex"
             >
               <LogOut className="h-4 w-4" />
-              <span className="text-[8px] uppercase tracking-[0.05em] leading-none">Salir</span>
+            </button>
+            {/* Hamburger — mobile only */}
+            <button
+              onClick={() => setMobileOpen((v) => !v)}
+              aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+              className="flex h-9 w-9 items-center justify-center text-neutral-600 transition-colors hover:text-brand md:hidden"
+            >
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
       </header>
 
-      {/* Mobile bottom nav bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200 bg-[#EDE6CA] md:hidden">
-        <div
-          className="flex overflow-x-auto"
-          style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
-        >
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex min-w-[4.5rem] min-h-[5rem] flex-col items-center justify-center gap-1 px-1 py-6 transition-colors",
-                isActive(item) ? "text-brand" : "text-neutral-400 hover:text-brand"
-              )}
-            >
-              <item.icon className="h-8 w-8 flex-shrink-0" aria-hidden="true" />
-              <span className="text-[8px] uppercase tracking-[0.03em] leading-none whitespace-nowrap">{item.shortLabel}</span>
-            </Link>
-          ))}
-          <button
-            onClick={handleLogout}
-            className="flex min-w-[4.5rem] min-h-[5rem] flex-col items-center justify-center gap-1 px-1 py-6 text-neutral-400 transition-colors hover:text-brand"
-          >
-            <LogOut className="h-8 w-8 flex-shrink-0" />
-            <span className="text-[8px] uppercase tracking-[0.03em] leading-none">Salir</span>
-          </button>
+      {/* Mobile drawer */}
+      {mobileOpen && (
+        <div className="border-b border-neutral-200 bg-[#EDE6CA] md:hidden">
+          <nav className="mx-auto max-w-[1200px] space-y-0.5 px-4 py-3">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 rounded-sm px-4 py-3 text-[11px] uppercase tracking-[0.15em] transition-colors",
+                  isActive(item)
+                    ? "bg-[#5b2525]/10 text-brand"
+                    : "text-neutral-500 hover:bg-[#5b2525]/5 hover:text-brand"
+                )}
+              >
+                <item.icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                {item.label}
+              </Link>
+            ))}
+
+            {/* Footer: name + logout */}
+            <div className="mt-2 flex items-center justify-between border-t border-neutral-200 px-4 pb-2 pt-4">
+              <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-400">
+                {therapistName}
+              </p>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-brand"
+              >
+                <LogOut className="h-4 w-4" />
+                Salir
+              </button>
+            </div>
+          </nav>
         </div>
-      </nav>
+      )}
     </>
   );
 }

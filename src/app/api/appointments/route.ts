@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import {
+  sendAppointmentConfirmation,
+  sendTherapistBookingNotification,
+} from "@/lib/email";
+import { sendPushToUser } from "@/lib/push";
+import { buildGoogleCalendarUrl } from "@/lib/utils";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +17,11 @@ function addDays(isoDate: string, days: number) {
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
+}
+
+function unwrapRelation<T>(value: T | T[] | null | undefined): T | null {
+  if (!value) return null;
+  return Array.isArray(value) ? (value[0] ?? null) : value;
 }
 
 // POST /api/appointments - Create appointment manually from dashboard
@@ -37,6 +49,7 @@ export async function POST(request: NextRequest) {
       patient_id,
       date,
       time,
+      service_id,
       treatment_id,
       branch_id,
       repeat_weekly,
@@ -134,7 +147,7 @@ export async function POST(request: NextRequest) {
       .select(`
         *,
         patient:patients (id, name, email, phone),
-        therapist:therapists (id, name, email),
+        therapist:therapists (id, name, email, user_id, meeting_link),
         treatment:treatments (id, name, duration_minutes),
         branch:branches (id, name, type)
       `)
@@ -158,10 +171,131 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const createdList = appointmentsCreated ?? [];
+
+    if (createdList.length > 0) {
+      const serviceNamePromise = service_id
+        ? supabase.from("services").select("name").eq("id", service_id).maybeSingle()
+        : Promise.resolve({ data: null });
+
+      const [{ data: serviceData }] = await Promise.all([serviceNamePromise]);
+      const fallbackServiceName = serviceData?.name ?? "Consulta";
+
+      for (const created of createdList) {
+        const patient = unwrapRelation(created.patient as {
+          name?: string;
+          email?: string;
+        } | null);
+        const therapistData = unwrapRelation(created.therapist as {
+          name?: string;
+          email?: string;
+          user_id?: string;
+          meeting_link?: string | null;
+        } | null);
+        const branch = unwrapRelation(created.branch as {
+          name?: string;
+          type?: string;
+        } | null);
+        const treatment = unwrapRelation(created.treatment as {
+          name?: string;
+        } | null);
+
+        const isOnline = branch?.type === "online";
+        const meetingLink = isOnline
+          ? (therapistData?.meeting_link || process.env.DEFAULT_MEETING_LINK || null)
+          : null;
+        const serviceName = treatment?.name || fallbackServiceName;
+
+        if (patient?.email) {
+          const confirmationEmail = await sendAppointmentConfirmation({
+            patientName: patient.name || "Paciente",
+            patientEmail: patient.email.trim().toLowerCase(),
+            therapistName: therapistData?.name || "Tu terapeuta",
+            serviceName,
+            date: created.date,
+            time: created.time,
+            modality: isOnline ? "Online" : "Presencial",
+            branchName: branch?.name || "",
+            meetingLink,
+            cancellationToken: created.cancellation_token || undefined,
+          });
+
+          if (confirmationEmail.error) {
+            console.error("[appointments] Confirmation email was not sent:", confirmationEmail.error);
+          }
+        }
+
+        const therapistEmail = therapistData?.email?.trim().toLowerCase();
+        if (therapistEmail) {
+          const gcalUrl = buildGoogleCalendarUrl({
+            title: `Cita — ${patient?.name || "Paciente"}${serviceName ? ` (${serviceName})` : ""}`,
+            date: created.date,
+            time: created.time,
+            durationMinutes: 60,
+            location: branch?.name ?? "",
+          });
+
+          const therapistBookingEmail = await sendTherapistBookingNotification({
+            therapistName: therapistData?.name || "Terapeuta",
+            therapistEmail,
+            patientName: patient?.name || "Paciente",
+            patientEmail: patient?.email?.trim().toLowerCase() || "",
+            serviceName,
+            date: created.date,
+            time: created.time,
+            modality: isOnline ? "Online" : "Presencial",
+            branchName: branch?.name || "",
+            googleCalendarUrl: gcalUrl,
+          });
+
+          if (therapistBookingEmail.error) {
+            console.error("[appointments] Therapist booking notification email was not sent:", therapistBookingEmail.error);
+          }
+        }
+      }
+
+      const firstCreated = createdList[0];
+      const firstTherapist = unwrapRelation(firstCreated.therapist as {
+        user_id?: string;
+      } | null);
+      const firstPatient = unwrapRelation(firstCreated.patient as {
+        name?: string;
+      } | null);
+      const firstBranch = unwrapRelation(firstCreated.branch as {
+        name?: string;
+      } | null);
+
+      if (firstTherapist?.user_id) {
+        try {
+          const adminSupabase = createAdminSupabaseClient();
+          const gcalUrl = buildGoogleCalendarUrl({
+            title: `Cita — ${firstPatient?.name || "Paciente"}`,
+            date: firstCreated.date,
+            time: firstCreated.time,
+            durationMinutes: 60,
+            location: firstBranch?.name ?? "",
+          });
+
+          await sendPushToUser(adminSupabase, firstTherapist.user_id, {
+            title: "Nueva cita agendada 📅",
+            body:
+              createdList.length > 1
+                ? `${firstPatient?.name || "Paciente"}: ${createdList.length} citas creadas desde agenda profesional.`
+                : `${firstPatient?.name || "Paciente"} fue agendado para el ${firstCreated.date} a las ${firstCreated.time}.`,
+            url: "/dashboard/appointments",
+            tag: "new-appointment",
+            gcalUrl,
+          });
+        } catch (pushError) {
+          console.error("[appointments] Therapist push notification failed:", pushError);
+        }
+      }
+    }
+
     return NextResponse.json(
       {
-        appointment: appointmentsCreated?.[0] ?? null,
-        appointments: appointmentsCreated ?? [],
+        appointment: createdList[0] ?? null,
+        appointments: createdList,
         created_count: rowsToInsert.length,
         skipped_conflicts: Array.from(conflictDates).sort(),
       },
