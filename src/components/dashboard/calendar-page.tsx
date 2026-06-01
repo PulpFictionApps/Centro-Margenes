@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Therapist, AppointmentWithRelations, Patient, Branch, Service } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +18,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
 import type { DatesSetArg, EventContentArg, EventInput } from "@fullcalendar/core";
-import { Calendar, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { AppointmentDetailModal } from "./appointment-detail-modal";
 
 interface CalendarPageProps {
@@ -87,13 +86,13 @@ export function CalendarPage({ therapist }: CalendarPageProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "scheduled":
-        return { bg: "#DBEAFE", border: "#60A5FA", text: "#1D4ED8" }; // blue
+        return { bg: "#efe3cc", border: "#d8c4a0", text: "#5b2525" };
       case "completed":
-        return { bg: "#DCFCE7", border: "#4ADE80", text: "#166534" }; // green
+        return { bg: "#e5efe6", border: "#b6ccb8", text: "#2f5a38" };
       case "cancelled":
-        return { bg: "#FEE2E2", border: "#F87171", text: "#B91C1C" }; // red
+        return { bg: "#f4dede", border: "#d8a8a8", text: "#8f4040" };
       default:
-        return { bg: "#F3F4F6", border: "#D1D5DB", text: "#374151" };
+        return { bg: "#f4ecdb", border: "#d9ceb2", text: "#5c5246" };
     }
   };
 
@@ -234,89 +233,74 @@ export function CalendarPage({ therapist }: CalendarPageProps) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-neutral-800">
-            Calendario
-          </h1>
-          <p className="text-sm text-neutral-500 mt-1">
-            Visualiza y gestiona las citas de {therapist.name} en vista mensual, semanal y diaria
-          </p>
-        </div>
+    <div className="space-y-3 md:space-y-4">
+      <div className="hidden md:block">
+        <h1 className="text-2xl font-semibold text-neutral-800">Calendario</h1>
+        <p className="mt-1 text-sm text-neutral-500">
+          Visualiza y gestiona las citas de {therapist.name}
+        </p>
       </div>
 
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Calendar className="h-5 w-5" />
-            Agenda de citas
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          {!hasLoaded && loading ? (
-            <div className="h-96 flex items-center justify-center">
-              <div className="text-neutral-500">Cargando citas...</div>
-            </div>
-          ) : (
-            <div className="dashboard-calendar relative rounded-2xl border border-[#d9ceb2] bg-[#fffdf7] p-3 shadow-sm overflow-hidden">
-              {loading && (
-                <div className="pointer-events-none absolute right-4 top-4 z-10 rounded-full bg-white/90 px-3 py-1 text-xs text-neutral-500 shadow">
-                  Actualizando...
-                </div>
-              )}
-              <FullCalendar
-                key={isMobile ? "mobile" : "desktop"}
-                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                initialView={isMobile ? "timeGridDay" : "dayGridMonth"}
-                headerToolbar={
-                  isMobile
-                    ? { left: "prev,next", center: "title", right: "today dayGridMonth,timeGridWeek,timeGridDay" }
-                    : { left: "prev,next today", center: "title", right: "dayGridMonth,timeGridWeek,timeGridDay" }
-                }
-                buttonText={{
-                  today: "Hoy",
-                  dayGridMonth: "Mes",
-                  timeGridWeek: "Semana",
-                  timeGridDay: "Día",
-                  month: "Mes",
-                  week: "Semana",
-                  day: "Día",
-                }}
-                locale={esLocale}
-                firstDay={1}
-                height="auto"
-                events={events}
-                eventClick={(info) => handleEventClick(info.event.id)}
-                eventContent={renderEventContent}
-                datesSet={handleDatesSet}
-                eventDisplay="block"
-                dayMaxEventRows={3}
-                eventMinHeight={26}
-                eventShortHeight={22}
-                slotMinTime="08:00:00"
-                slotMaxTime="21:00:00"
-                allDaySlot={false}
-                nowIndicator={true}
-              />
-
-              <button
-                type="button"
-                onClick={() => {
-                  setCreateError("");
-                  setShowCreateModal(true);
-                }}
-                className="absolute bottom-4 right-4 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-[#5b2525] text-white shadow-lg transition hover:bg-[#4a1f1f] focus:outline-none focus:ring-2 focus:ring-[#5b2525]/40"
-                aria-label="Agregar cita"
-                title="Agregar cita"
-              >
-                <Plus className="h-6 w-6" />
-              </button>
+      {!hasLoaded && loading ? (
+        <div className="flex h-[70vh] items-center justify-center rounded-2xl border border-[#d9ceb2] bg-[#fffdf7]">
+          <div className="text-neutral-500">Cargando citas...</div>
+        </div>
+      ) : (
+        <div className="dashboard-calendar relative overflow-hidden rounded-2xl border border-[#d9ceb2] bg-[#fffdf7] p-2 md:p-3 shadow-sm">
+          {loading && (
+            <div className="pointer-events-none absolute right-4 top-4 z-10 rounded-full bg-[#fffdf7]/90 px-3 py-1 text-xs text-neutral-500 shadow">
+              Actualizando...
             </div>
           )}
-        </CardContent>
-      </Card>
+          <FullCalendar
+            key={isMobile ? "mobile" : "desktop"}
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView={isMobile ? "timeGridDay" : "dayGridMonth"}
+            headerToolbar={
+              isMobile
+                ? { left: "prev,next", center: "title", right: "today dayGridMonth,timeGridWeek,timeGridDay" }
+                : { left: "prev,next today", center: "title", right: "dayGridMonth,timeGridWeek,timeGridDay" }
+            }
+            buttonText={{
+              today: "Hoy",
+              dayGridMonth: "Mes",
+              timeGridWeek: "Semana",
+              timeGridDay: "Dia",
+              month: "Mes",
+              week: "Semana",
+              day: "Dia",
+            }}
+            locale={esLocale}
+            firstDay={1}
+            height="auto"
+            events={events}
+            eventClick={(info) => handleEventClick(info.event.id)}
+            eventContent={renderEventContent}
+            datesSet={handleDatesSet}
+            eventDisplay="block"
+            dayMaxEventRows={3}
+            eventMinHeight={26}
+            eventShortHeight={22}
+            slotMinTime="08:00:00"
+            slotMaxTime="21:00:00"
+            allDaySlot={false}
+            nowIndicator={true}
+          />
+
+          <button
+            type="button"
+            onClick={() => {
+              setCreateError("");
+              setShowCreateModal(true);
+            }}
+            className="absolute bottom-4 right-4 z-20 flex h-14 w-14 items-center justify-center rounded-[22px] bg-[#5b2525] text-white shadow-lg transition hover:bg-[#4a1f1f] focus:outline-none focus:ring-2 focus:ring-[#5b2525]/40"
+            aria-label="Agregar cita"
+            title="Agregar cita"
+          >
+            <Plus className="h-7 w-7" />
+          </button>
+        </div>
+      )}
 
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
         <DialogContent className="sm:max-w-[520px]">

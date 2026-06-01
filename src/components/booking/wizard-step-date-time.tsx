@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,8 @@ export function WizardStepDateTime({
   const { setValue, watch, clearErrors } = useFormContext<BookingFormValues>();
   const selectedDateStr = watch("date");
   const selectedTime = watch("time");
+  const slotsSectionRef = useRef<HTMLDivElement | null>(null);
+  const [slotsHighlighted, setSlotsHighlighted] = useState(false);
 
   const today = startOfDay(new Date());
   const maxDate = addDays(today, 60);
@@ -29,12 +32,32 @@ export function WizardStepDateTime({
     ? new Date(selectedDateStr + "T12:00:00")
     : undefined;
 
+  const scrollToSlots = () => {
+    if (!slotsSectionRef.current) return;
+
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    slotsSectionRef.current.scrollIntoView({
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+      block: "start",
+    });
+
+    setSlotsHighlighted(true);
+    window.setTimeout(() => setSlotsHighlighted(false), 700);
+  };
+
   const handleSelectDate = (date: Date | undefined) => {
     if (!date) return;
     const dateStr = format(date, "yyyy-MM-dd");
     setValue("date", dateStr);
     setValue("time", "");
     clearErrors("date");
+
+    window.requestAnimationFrame(() => {
+      scrollToSlots();
+    });
   };
 
   return (
@@ -67,7 +90,13 @@ export function WizardStepDateTime({
         </div>
 
         {/* Time slots */}
-        <div>
+        <div
+          ref={slotsSectionRef}
+          className={cn(
+            "transition-all duration-500",
+            slotsHighlighted && "rounded-lg bg-[#efe3cc]/35 p-2"
+          )}
+        >
           {selectedDateStr ? (
             <>
               <p className="mb-4 text-[11px] uppercase tracking-[0.15em] text-neutral-500">

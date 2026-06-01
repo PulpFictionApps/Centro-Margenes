@@ -154,11 +154,11 @@ html {
 }
 
 .dashboard-calendar .fc .fc-toolbar-title {
-  font-family: var(--font-playfair), serif;
+  font-family: var(--font-leggibilmente), sans-serif;
   color: #2f2622;
-  font-size: 1.9rem;
-  font-weight: 500;
-  text-transform: lowercase;
+  font-size: 1.7rem;
+  font-weight: 600;
+  text-transform: none;
 }
 
 .dashboard-calendar .fc .fc-button {

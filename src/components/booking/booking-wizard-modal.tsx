@@ -70,6 +70,29 @@ const STEP_FIELDS: Record<number, (keyof BookingFormValues)[]> = {
   6: ["patient"],
 };
 
+function normalizeBirthdateToIso(value?: string) {
+  const raw = value?.trim();
+  if (!raw) return null;
+
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(raw);
+  if (!match) return null;
+
+  const [, day, month, year] = match;
+  const iso = `${year}-${month}-${day}`;
+  const parsed = new Date(`${iso}T12:00:00`);
+
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    parsed.getFullYear() !== Number(year) ||
+    parsed.getMonth() + 1 !== Number(month) ||
+    parsed.getDate() !== Number(day)
+  ) {
+    return null;
+  }
+
+  return iso;
+}
+
 interface BookingWizardModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -275,17 +298,30 @@ export function BookingWizardModal({
   const handleSubmit = async () => {
     const valid = await trigger();
     if (!valid) return;
-    setIsSubmitting(true);
-    setBookingError(null);
 
     const values = form.getValues();
+    const normalizedBirthdate = normalizeBirthdateToIso(values.patient.birthdate);
+
+    if (values.patient.birthdate?.trim() && !normalizedBirthdate) {
+      form.setError("patient.birthdate", {
+        type: "manual",
+        message: "Usa el formato dd/mm/aaaa",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setBookingError(null);
 
     try {
       const res = await fetch("/api/book-appointment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          patient: values.patient,
+          patient: {
+            ...values.patient,
+            birthdate: normalizedBirthdate ?? "",
+          },
           therapistId: values.therapistId,
           branchId: values.branchId,
           serviceId: values.treatmentId,

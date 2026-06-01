@@ -1,6 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
+import { CalendarPage } from "@/components/dashboard/calendar-page";
 
 export default async function DashboardPage() {
   const supabase = createServerSupabaseClient();
@@ -16,17 +16,7 @@ export default async function DashboardPage() {
     .eq("user_id", user.id)
     .single();
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-playfair text-3xl font-normal text-brand">
-          Bienvenido, {therapist?.name?.split(" ")[0] ?? "Terapeuta"}
-        </h1>
-        <p className="mt-2 text-sm text-neutral-500">
-          Resumen de tu actividad y citas.
-        </p>
-      </div>
-      <DashboardOverview therapistId={therapist?.id} />
-    </div>
-  );
+  if (!therapist) redirect("/login");
+
+  return <CalendarPage therapist={therapist} />;
 }

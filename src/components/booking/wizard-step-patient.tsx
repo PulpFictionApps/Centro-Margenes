@@ -11,9 +11,16 @@ import {
 import type { BookingFormValues } from "./booking-wizard-modal";
 
 export function WizardStepPatient() {
-  const { control } = useFormContext<BookingFormValues>();
+  const { control, clearErrors } = useFormContext<BookingFormValues>();
 
   const inputClasses = "mt-1 block w-full border-b border-neutral-300 bg-transparent px-0 py-3 text-sm text-brand placeholder:text-neutral-400 focus:border-brand focus:outline-none";
+
+  const formatBirthdateInput = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 8);
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+  };
 
   return (
     <div className="space-y-5">
@@ -91,7 +98,21 @@ export function WizardStepPatient() {
                 <span className="normal-case tracking-normal text-neutral-400">(opcional)</span>
               </FormLabel>
               <FormControl>
-                <input type="date" className={inputClasses} {...field} />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="dd/mm/aaaa"
+                  maxLength={10}
+                  className={inputClasses}
+                  value={field.value ?? ""}
+                  onChange={(event) => {
+                    clearErrors("patient.birthdate");
+                    field.onChange(formatBirthdateInput(event.target.value));
+                  }}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  ref={field.ref}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
