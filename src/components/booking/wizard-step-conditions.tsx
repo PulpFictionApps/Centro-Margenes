@@ -20,7 +20,7 @@ export function WizardStepConditions({ accepted, onAcceptChange }: WizardStepCon
       <div className="space-y-4 rounded border border-neutral-300/60 bg-white/40 p-4 text-sm leading-relaxed text-neutral-700">
         <ul className="list-disc space-y-3 pl-5">
           <li>
-            El valor de la primera sesión es de $35.000 y el arancel para el proceso se acordará con el analista, quien considerará la declaración socioeconómica dentro del formulario de inscripción.
+            El valor de la primera sesión presencial es de $30.000 y online $25.000. El arancel para el proceso se acordará con el analista, contamos con aranceles diferenciados en función de la situación económica del paciente.
           </li>
           <li>
             El pago de la sesión debe ser realizado anticipadamente hasta las 10:00 PM. del día anterior a la sesión.
@@ -29,19 +29,19 @@ export function WizardStepConditions({ accepted, onAcceptChange }: WizardStepCon
             Se abordará el proceso terapéutico desde el enfoque psicoanalítico.
           </li>
           <li>
-            La duración de la terapia puede ser variable, por lo que se sugiere a el/la paciente proyectarse en el mediano a largo plazo. Estas son una vez por semana como mínimo (pueden ser más).
+            Las sesiones son una vez por semana como mínimo.
           </li>
           <li>
-            Las sesiones tendrán una duración de 45 minutos a 1 hora. Tanto de forma presencial como online es fundamental cumplir con el horario indicado, en caso contrario, el analista podrá esperarlo y la sesión durará el resto del tiempo acordado.
+            Las sesiones tendrán una duración de 45 minutos a 1 hora.
           </li>
           <li>
             Si hay tres inasistencias consecutivas sin previo aviso se liberará su cupo de atención.
           </li>
           <li>
-            En caso de no poder asistir a sesión, dicha sesión se cobrará, a menos que se avise con 24 horas de anticipación. Entendiendo que lo que se paga es la reserva de un horario y su analista lo estará esperando.
+            En caso de no poder asistir a sesión, dicha sesión se cobrará, a menos que se avise con 24 horas de anticipación.
           </li>
           <li>
-            La sesión se puede cancelar exclusivamente por motivos de urgencia. Los motivos deben ser conversados con el analista. Se podrá reagendar si este tiene otros horarios disponibles durante la misma semana o se podrá recuperar dicha sesión la semana siguiente.
+            La sesión se puede cancelar exclusivamente por motivos de urgencia.
           </li>
         </ul>
       </div>
